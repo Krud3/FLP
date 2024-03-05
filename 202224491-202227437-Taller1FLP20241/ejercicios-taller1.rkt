@@ -283,6 +283,20 @@
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
 
+(define scan
+  (lambda (L n F)
+    (if (null? L)
+        (list n)  
+        (let ((new-n (F n (car L)))) 
+          (cons n  
+                (scan (cdr L) new-n F)
+                )
+          )
+        )
+    )
+  )
+(scan '(1 2 3 4 5) 0 +)
+(scan '(2 4 8) 1 *)
 
 ;; Ejercicio 13
 ;; operate:
