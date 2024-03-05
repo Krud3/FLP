@@ -73,10 +73,11 @@
 
 (define list-set
   (lambda (lst n x)
-    (if (= n 0)
-        (cons x  (cdr lst))
-        (cons (car lst) (list-set (cdr lst) (- n 1) x))
-        )
+    (cond
+      [(null? lst) (if (= n 0) (list x) '())]
+      [(= n 0) (cons x (cdr lst))]
+      [else (cons (car lst) (list-set (cdr lst) (- n 1) x))]
+      )
     )
   )
 (list-set '(a b c d) 2 '(1 2))
