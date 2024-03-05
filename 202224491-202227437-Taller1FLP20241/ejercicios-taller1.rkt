@@ -47,15 +47,15 @@
     (if (null? remaining_list)
         empty
         (cons (cons (car remaining_list) empty) (down (cdr remaining_list)) )
-              )
-)
+     )
   )
+)
 
 (define downed
   (lambda (remaining_list)
     (if (null? remaining_list)
         empty
-        (append (car remaining_list) (downed (cdr remaining_list)) )
+        (list (car remaining_list) (downed (cdr remaining_list)) )
               )
 )
   )
@@ -97,6 +97,18 @@
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
 
+(define filter-in
+  (lambda (a-list predicate)
+
+    (if (null? a-list)
+        '()
+        (if (predicate (car a-list))
+          (cons (car a-list) (filter-in (cdr a-list) predicate))
+          (filter-in (cdr a-list) predicate)
+          )
+        ))
+)
+
 
 ;; Ejercicio 5
 ;; mix:
@@ -132,6 +144,16 @@
 ;;
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
+
+(define swapper
+  (lambda (e1 e2 a-list)
+    (cond
+      [(null? a-list) '()]
+      [(equal? e2 (car a-list)) (cons e1 (swapper e1 e2 (cdr a-list)))]
+      [(equal? e1 (car a-list)) (cons e2 (swapper e1 e2 (cdr a-list)))]
+      [else (cons (car a-list) (swapper 'e1 e2 (cdr a-list)))])
+  )
+)
 
 
 ;; Ejercicio 7
