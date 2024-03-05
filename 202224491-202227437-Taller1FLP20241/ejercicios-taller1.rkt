@@ -151,7 +151,7 @@
       [(null? a-list) '()]
       [(equal? e2 (car a-list)) (cons e1 (swapper e1 e2 (cdr a-list)))]
       [(equal? e1 (car a-list)) (cons e2 (swapper e1 e2 (cdr a-list)))]
-      [else (cons (car a-list) (swapper 'e1 e2 (cdr a-list)))])
+      [else (cons (car a-list) (swapper e1 e2 (cdr a-list)))])
   )
 )
 
@@ -213,6 +213,16 @@
 ;;
 ;; <List-pair> ::= ()
 ;;             ::= (<Pair> <List-pair>)
+
+(define mapping 
+  (lambda (f l1 l2)
+    (cond
+      [(or (null? l1) (null? l2)) '()]
+      [(equal? (f (car l1)) (car l2)) (cons (list (car l1) (car l2)) (mapping f (cdr l1) (cdr l2)))]
+      [else (mapping f (cdr l1) (cdr l2))]
+      )
+  )
+)
 
 
 ;; Ejercicio 9
