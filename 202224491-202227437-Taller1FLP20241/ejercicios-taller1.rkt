@@ -371,6 +371,21 @@
 ;;              ::= (<OperacionB> 'resta <OperacionB>)
 ;;              ::= (<OperacionB> 'multiplica <OperacionB>)
 
+(define o-b-helper
+  (lambda (element value-1 value-2)
+    (cond
+      [(eqv? element 'suma) (+ value-1 value-2)]
+      [(eqv? element 'resta) (- value-1 value-2)]
+      [(eqv? element 'multiplica) (* value-1 value-2)]
+      )
+    )
+  )
+
+(define Operar-binarias
+  (lambda (operacionB)
+    (if(null? (cdr operacionB))
+              (car operacionB)
+              1)))
 
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
