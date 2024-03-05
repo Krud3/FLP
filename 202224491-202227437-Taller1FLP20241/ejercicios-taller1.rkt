@@ -411,9 +411,16 @@
 
 (define Operar-binarias
   (lambda (operacionB)
-    (if(null? (cdr operacionB))
-              (car operacionB)
-              1)))
+    (if (number? operacionB)
+      operacionB  
+      (let ((op (cadr operacionB))
+            (val-1 (Operar-binarias (car operacionB)))
+            (val-2 (Operar-binarias (caddr operacionB))))
+        (o-b-helper op val-1 val-2)
+        )
+      )
+    )
+  )
 
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
