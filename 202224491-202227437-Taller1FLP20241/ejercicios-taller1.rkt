@@ -224,13 +224,31 @@
 ;; <List-pair> ::= ()
 ;;             ::= (<Pair> <List-pair>)
 
-;(define unzip
-;  (lambda (lst)
-;    ))
+(define unzip
+  (lambda (lst)
+    (list (car-unzip lst) (car-cdr-car-unzip lst))))
 
-;(define car-unzip
-;  (lambda (lst)
-;    ))
+(define car-unzip
+  (lambda (lst)
+    (if (null? lst)
+        empty
+        (append (list (car (car lst)))
+                (car-unzip (cdr lst)))
+        )
+    )
+  )
+
+(define car-cdr-car-unzip
+  (lambda (lst)
+    (if (null? lst)
+        empty
+        (append (list (car (cdr (car lst))))
+                (car-cdr-car-unzip (cdr lst)))
+        )
+    )
+  )
+(unzip '((1 2) (3 4) (5 6)))
+(unzip '((a 1) (b 2) (c 3)))
 
 ;; Ejercicio 12
 ;; scan:
@@ -263,6 +281,20 @@
 ;; <List-Int> ::= ()
 ;;            ::= (<Int> <List-Int>)
 
+(define operate
+  (lambda (lrators lrands)
+    (if (null? (cdr lrators))  
+      ((car lrators) (car lrands) (cadr lrands))  
+      (operate (cdr lrators)  
+               (cons ((car lrators) (car lrands) (cadr lrands))  
+                     (cddr lrands)
+                     )
+               )
+      )
+    )  
+  )  
+(operate (list + * + - *) '(1 2 8 4 11 6))
+(operate (list *) '(4 5))
 
 ;; -----------------------1.1.2------------------------------ ;;
 ;; Ejercicio 14
@@ -294,6 +326,19 @@
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
 
+(define inorder
+  (lambda (arbol)
+    (if (null? arbol)
+        empty
+        (append (inorder (cadr arbol))
+                (list (car arbol))
+                (inorder (caddr arbol))
+                )
+        )
+    )
+  )
+(inorder '(21 (0 (4 () ()) (4 () ()))(52 (14 (6 (8 () ()) ())(5 () ()))(19 () ()))))
+(inorder '(14 (7 () (12 () ()))(26 (20 (17 () ())())(31 () ()))))
 
 ;; Ejercicio 16
 ;; Operar-binarias:
@@ -311,8 +356,8 @@
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
 ;; Proposito:
-;; prod-scalar-matriz : <matrz> A <vect> V -> <List> R: Procedimiento
-;; encargado de recibir una matriz A y un vector V para retornar el
+;; prod-scalar-matriz : <matrz> mat <vect> vec -> <List> R: Procedimiento
+;; encargado de recibir una matriz mat y un vector vec para retornar el
 ;; resultado de realizar la multipliacion matriz por vector.
 ;;
 ;; <row> ::= ()
@@ -326,6 +371,30 @@
 ;;
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
+
+(define prod-scalar-matriz
+  (lambda (mat vec)
+    (if (null? mat)
+        empty
+        (cons (p-s-m-helper (car mat) vec)
+                (prod-scalar-matriz (cdr mat) vec)
+                )
+        )
+    )
+  )
+
+(define p-s-m-helper
+  (lambda (lst-1 lst-2)
+    (if (null? lst-1)
+        empty
+        (cons (* (car lst-1)(car lst-2))
+              (p-s-m-helper (cdr lst-1) (cdr lst-2))
+              )
+        )
+    )
+  )
+(prod-scalar-matriz '((1 1) (2 2)) '(2 3))
+(prod-scalar-matriz '((1 1) (2 2) (3 3)) '(2 3))
 
 
 ;; Ejercicio 18

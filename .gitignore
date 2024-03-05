@@ -1,0 +1,13 @@
+# Archivos de respaldo
+*.bak
+
+# Archivos compilados
+compiled
+*.zo
+*.zwc
+
+# Archivos de paquetes
+.pictie
+
+# Directorios de DrRacket
+drscheme-memory
