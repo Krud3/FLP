@@ -331,6 +331,20 @@
 ;; <route-List> ::= ()
 ;;              ::= ('right <route-List>) | ('left <route-List>)
 
+(define path
+  (lambda (n A)
+    (cond [(null? A) empty]
+          [else (cond
+                  [(= n (car A)) empty]
+                  [(< n (car A)) (cons 'left (path n (cadr A)))]
+                  [(> n (car A)) (cons 'right (path n (caddr A)))]
+                  )
+                ]
+          )
+    )
+  )
+(path 17 '(14 (7 () (12 () ()))(26 (20 (17 () ())())(31 () ()))))
+(path 14 '(8 (3 (1 () ()) (6 (4 () ()) (7 () ()))) (10 () (14 (13 () ()) ()))))
 
 ;; Ejercicio 15
 ;; inorder:
