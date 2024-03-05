@@ -41,6 +41,25 @@
 ;;        ::= (<Scheme-Value> <List>)
 
 
+
+(define down
+  (lambda (remaining_list)
+    (if (null? remaining_list)
+        empty
+        (cons (cons (car remaining_list) empty) (down (cdr remaining_list)) )
+              )
+)
+  )
+
+(define downed
+  (lambda (remaining_list)
+    (if (null? remaining_list)
+        empty
+        (append (car remaining_list) (downed (cdr remaining_list)) )
+              )
+)
+  )
+
 ;; Ejercicio 3
 ;; list-set:
 ;; Proposito:
