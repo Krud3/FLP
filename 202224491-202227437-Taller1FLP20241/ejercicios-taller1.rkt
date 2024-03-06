@@ -548,6 +548,7 @@
 (inorder '(42 () ()))
 ;; Resultado esperado: '(42)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 16
 ;; Operar-binarias:
 ;; Proposito:
@@ -582,6 +583,26 @@
       )
     )
   )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(Operar-binarias '((3 resta (4 multiplica 1))
+                   multiplica ((2 resta 3) suma 11)))
+;; Resultado esperado: -10
+
+(Operar-binarias '((10 resta 2) multiplica (1 suma 3)))
+;; Resultado esperado: 32
+
+(Operar-binarias '(3 suma 4))
+;; Resultado esperado: 7
+
+(Operar-binarias '(5 resta 3))
+;; Resultado esperado: 2
+
+(Operar-binarias '(4 multiplica -5))
+;; Resultado esperado: -20
 
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
