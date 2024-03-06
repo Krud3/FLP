@@ -415,6 +415,7 @@
 (scan '(2 4) 8 /)
 ;; Resultado esperado: '(8 4 1)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 13
 ;; operate:
 ;; Proposito:
@@ -442,9 +443,23 @@
                )
       )
     )  
-  )  
-(operate (list + * + - *) '(1 2 8 4 11 6))
-(operate (list *) '(4 5))
+  )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(operate (list +) '(3 4))
+;; Resultado esperado: 7
+
+(operate (list + * -) '(2 3 4 5))
+;; Resultado esperado: 15
+
+(operate (list / - +) '(12 4 3 6))
+;; Resultado esperado: 6
+
+(operate (list + * - /) '(5 6 3 4 2))
+;; Resultado esperado: 14.5
 
 ;; -----------------------1.1.2------------------------------ ;;
 ;; Ejercicio 14
