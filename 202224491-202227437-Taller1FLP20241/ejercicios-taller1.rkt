@@ -73,6 +73,7 @@
 )
   )
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 3
 ;; list-set:
 ;; Proposito:
@@ -93,9 +94,22 @@
       )
     )
   )
-(list-set '(a b c d) 2 '(1 2))
-(list-set '(a b c d) 3 '(1 5 10))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(list-set '() 0 'x)
+;; Resultado esperado: (x)
+
 (list-set '(1 2 3 4 5) 2 '(a b))
+;; Resultado esperado: (1 2 (a b) 4 5)
+
+(list-set '(a b c d) 3 'x)
+;; Resultado esperado: (a b c x)
+
+(list-set '(b b '(1 2) d) 2 '(a k o))
+;; Resultado esperado: (b b (a k o) d)
 
 ;; Ejercicio 4
 ;; filter-in:
