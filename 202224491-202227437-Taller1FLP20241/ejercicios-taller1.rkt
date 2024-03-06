@@ -384,6 +384,7 @@
 (reverse '(1 "dos" 3 'cuatro))
 ;; Resultado esperado: '(cuatro 3 "dos" 1)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 10
 ;; flatten:
 ;; Proposito:
@@ -405,8 +406,21 @@
  )
 )
   
-  
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;----------------------------------- 
 
+(flatten '())
+;; Resultado esperado: '()
+
+(flatten '(1 (2 3) 4))
+;; Resultado esperado: '(1 2 3 4)
+
+(flatten '(1 () 2 (3 ()) 4))
+;; Resultado esperado: '(1 2 3 4)
+
+(flatten '(a (b (c d) e) f))
+;; Resultado esperado: '(a b c d e f)
 
 ;; ---------------------------------------------------------- ;;
 ;; Ejercicio 11
