@@ -118,6 +118,7 @@
 (list-set '(b b '(1 2) d) 2 '(a k o))
 ;; Resultado esperado: (b b (a k o) d)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 4
 ;; filter-in:
 ;; Proposito:
@@ -143,6 +144,28 @@
           )
         ))
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(filter-in '() even?)
+;; Resultado esperado: '()
+
+(filter-in '(1 2 3 4 5 6) even?)
+;; Resultado esperado: '(2 4 6)
+
+(filter-in '(1 2 3 4 5 6) odd?)
+;; Resultado esperado: '(1 3 5)
+
+(filter-in '(a 1 b "string" 2 c) symbol?)
+;; Resultado esperado: '(a b c)
+
+(filter-in '(a "hello" b "world" c) string?)
+;; Resultado esperado: '("hello" "world")
+
+(filter-in '(1 "two" 3 'four 5) number?)
+;; Resultado esperado: '(1 3 5)
 
 
 ;; ---------------------------------------------------------- ;;
