@@ -268,6 +268,14 @@
         )
     )
   )
+
+;; car-pro-helper:
+;; Proposito:
+;; car-pro-helper : <List> lst <Scheme-value> val -> <List> R:
+;; Funcion auxiliar que entrando como parametro una lista lst y un
+;; scheme-value val, retorna la lista de tuplas de combinaciones
+;; entre val y cada elemento de lst.
+
 (define car-pro-helper
   (lambda (lst val)
     (if (null? lst)
@@ -444,6 +452,12 @@
   (lambda (lst)
     (list (car-unzip lst) (car-cdr-car-unzip lst))))
 
+;; car-unzip:
+;; Proposito:
+;; car-unzip : <List> lst -> <List> R: Funcion auxiliar encargada
+;; de retornar el primer elemento de cada elemento de una lista
+;; de tuplas.
+
 (define car-unzip
   (lambda (lst)
     (if (null? lst)
@@ -453,6 +467,12 @@
         )
     )
   )
+
+;; car-cdr-car-unzip:
+;; Proposito:
+;; car-cdr-car-unzip : <List> lst -> <List> R: Funcion auxiliar 
+;; encargada de retornar el segundo elemento de cada elemento de 
+;; una lista de tuplas.
 
 (define car-cdr-car-unzip
   (lambda (lst)
@@ -667,6 +687,13 @@
 ;;              ::= (<OperacionB> 'resta <OperacionB>)
 ;;              ::= (<OperacionB> 'multiplica <OperacionB>)
 
+;; o-b-helper:
+;; Proposito:
+;; o-b-helper : <OperacionB> element <Int> value-1 <Int> value-2 -> <Int> R:
+;; Funcion auxiliar encargada de transformar element a su equivalente suma,
+;; resta o multiplica (dependiendo del caso) y retorna el resultado de
+;; aplicar esa operacion entre value-1 y value-2.
+
 (define o-b-helper
   (lambda (element value-1 value-2)
     (cond
@@ -740,6 +767,16 @@
         )
     )
   )
+
+;; p-s-m-helper:
+;; Propósito:
+;; p-s-m-helper: <List> lst-1 <List> lst-2 -> <List> R
+;; Esta función auxiliar se encarga de multiplicar,
+;; elemento a elemento, los correspondientes elementos
+;; de dos listas (lst-1 y lst-2). Devuelve una nueva
+;; lista R que contiene el resultado de estas multiplicaciones
+;; individuales.
+
 
 (define p-s-m-helper
   (lambda (lst-1 lst-2)
