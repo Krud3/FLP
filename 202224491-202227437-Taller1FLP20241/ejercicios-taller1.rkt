@@ -118,6 +118,7 @@
 (list-set '(b b '(1 2) d) 2 '(a k o))
 ;; Resultado esperado: (b b (a k o) d)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 4
 ;; filter-in:
 ;; Proposito:
@@ -143,6 +144,28 @@
           )
         ))
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(filter-in '() even?)
+;; Resultado esperado: '()
+
+(filter-in '(1 2 3 4 5 6) even?)
+;; Resultado esperado: '(2 4 6)
+
+(filter-in '(1 2 3 4 5 6) odd?)
+;; Resultado esperado: '(1 3 5)
+
+(filter-in '(a 1 b "string" 2 c) symbol?)
+;; Resultado esperado: '(a b c)
+
+(filter-in '(a "hello" b "world" c) string?)
+;; Resultado esperado: '("hello" "world")
+
+(filter-in '(1 "two" 3 'four 5) number?)
+;; Resultado esperado: '(1 3 5)
 
 
 ;; ---------------------------------------------------------- ;;
@@ -183,6 +206,7 @@
 (mix '(a "hello" 3) '(1 'b "world"))
 ;; Resultado esperado: (a 1 "hello" 'b 3 "world")
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 6
 ;; swapper:
 ;; Proposito:
@@ -203,6 +227,19 @@
       [else (cons (car a-list) (swapper e1 e2 (cdr a-list)))])
   )
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(swapper 1 'one '(1 2 3 one 4 one 1))
+;; Resultado esperado: '(one 2 3 1 4 1 one)
+
+(swapper 'a 'b '(a b a b c a b))
+;; Resultado esperado: '(b a b a c b a)
+
+(swapper 'a 'z '(a b c a d))
+;; Resultado esperado: '(z b c z d)
 
 
 ;; ---------------------------------------------------------- ;;
@@ -260,6 +297,8 @@
 (cartesian-product '(a b c) '(x))
 ;; Resultado esperado: ((a x) (b x) (c x))
 
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 8
 ;; mapping:
 ;; Proposito:
@@ -291,6 +330,22 @@
       )
   )
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(mapping (lambda (x) (* x x)) '() '())
+;; Resultado esperado: '()
+
+(mapping (lambda (x) (+ x 3)) '(1 2 3) '(4 5 7))
+;; Resultado esperado: '((1 4) (2 5))
+
+(mapping (lambda (x) (* x 2)) '(1 2 3) '(2 4))
+;; Resultado esperado: '((1 2) (2 4))
+
+(mapping (lambda (x) (string-append (number->string x) "s")) '(1 2 3 4) '("1s" "2s" "3s"))
+;; Resultado esperado: '((1 "1s") (2 "2s") (3 "3s"))
 
 
 ;; ---------------------------------------------------------- ;;
@@ -329,6 +384,7 @@
 (reverse '(1 "dos" 3 'cuatro))
 ;; Resultado esperado: '(cuatro 3 "dos" 1)
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 10
 ;; flatten:
 ;; Proposito:
@@ -350,8 +406,21 @@
  )
 )
   
-  
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;----------------------------------- 
 
+(flatten '())
+;; Resultado esperado: '()
+
+(flatten '(1 (2 3) 4))
+;; Resultado esperado: '(1 2 3 4)
+
+(flatten '(1 () 2 (3 ()) 4))
+;; Resultado esperado: '(1 2 3 4)
+
+(flatten '(a (b (c d) e) f))
+;; Resultado esperado: '(a b c d e f)
 
 ;; ---------------------------------------------------------- ;;
 ;; Ejercicio 11
