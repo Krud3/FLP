@@ -26,9 +26,22 @@
         )
     )
   )
-(invert '((a 1) (a 2) (1 b) (2 b)))
-(invert '((5 9) (10 91) (82 7) (a e) ("hola" "Mundo")))
-(invert '(("es" "racket") ("genial" "muy") (17 29) (81 o)))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(invert '())
+;; Resultado esperado: ()
+
+(invert '((a 1) (b 2) (c 3)))
+;; Resultado esperado: ((1 a) (2 b) (3 c))
+
+(invert '(("hola" "mundo") ("foo" "bar")))
+;; Resultado esperado: (("mundo" "hola") ("bar" "foo"))
+
+(invert '(('(e s) "racket") ("genial" "muy") (17 29) (81 'o)))
+;; Resultado esperado: (("racket" (e s)) ("muy" "genial") (29 17) ('o 81))
 
 ;; Ejercicio 2
 ;; down:
