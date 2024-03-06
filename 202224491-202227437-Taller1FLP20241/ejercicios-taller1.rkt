@@ -374,10 +374,11 @@
 (unzip '(((1 2) a) ((3 4) b) ((5 6) c)))
 ;; Resultado esperado: '(((1 2) (3 4) (5 6)) (a b c))
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 12
 ;; scan:
 ;; Proposito:
-;; scan : <List> L <Scheme-value> n <lambda-binary> F -> <List> L':
+;; scan : <List> L <Int> n <lambda-binary> F -> <List> L':
 ;; Procedimiento encargado de tomar el elemento n y aplicar la
 ;; funcion binaria F con cada elemento de la lista de forma acomulativa
 ;; retornando una lista con cada resultado parcial empezando con el
@@ -400,8 +401,19 @@
         )
     )
   )
-(scan '(1 2 3 4 5) 0 +)
-(scan '(2 4 8) 1 *)
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(scan '() 10 +)
+;; Resultado esperado: '(10)
+
+(scan '(1 2 3) 10 -)
+;; Resultado esperado: '(10 9 7 4)
+
+(scan '(2 4) 8 /)
+;; Resultado esperado: '(8 4 1)
 
 ;; Ejercicio 13
 ;; operate:
