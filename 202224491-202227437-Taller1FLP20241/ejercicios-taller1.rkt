@@ -461,3 +461,36 @@
 ;;
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
+
+(define pascal
+  (lambda (n)
+    (cond
+        [(> n 1) (pascal-accumulate-helper '(1) n 2)]
+        [(= n 0) '()]
+        [(= n 1) '(1)]
+    )
+  )
+)
+
+(define pascal-accumulate-helper
+  (lambda (lst n ctd)
+    (if (> ctd n) lst
+    (let ((lst1 (cons 0 lst))
+         (lst2 (append lst '(0)))
+          )
+       (pascal-accumulate-helper (list-sum lst1 lst2) n (+ ctd 1))
+      )
+   )
+  )
+)
+
+(define list-sum
+  (lambda (lst-1 lst-2)
+    (if (null? lst-1)
+        empty
+        (cons (+ (car lst-1)(car lst-2))
+              (list-sum (cdr lst-1) (cdr lst-2))
+         )
+     )
+   )
+ )
