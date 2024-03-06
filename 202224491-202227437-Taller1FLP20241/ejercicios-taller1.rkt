@@ -141,6 +141,7 @@
 ;;        ::= (<Scheme-Value> <List>)
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 5
 ;; mix:
 ;; Proposito:
@@ -161,9 +162,22 @@
         )
     )
   )
-(mix '(1 2 3 4 5) '(6 7 8 9 10))
-(mix '(a b c) '(7 8 9))
-(mix '(1 (5 2) foo) '(h (1 3) flp))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(mix '() '())
+;; Resultado esperado: ()
+
+(mix '() '(1 2 3))
+;; Resultado esperado: ()
+
+(mix '(a b c) '(1 2 3))
+;; Resultado esperado: (a 1 b 2 c 3)
+
+(mix '(a "hello" 3) '(1 'b "world"))
+;; Resultado esperado: (a 1 "hello" 'b 3 "world")
 
 ;; Ejercicio 6
 ;; swapper:
