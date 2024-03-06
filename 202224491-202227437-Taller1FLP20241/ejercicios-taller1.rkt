@@ -191,6 +191,7 @@
 ;;        ::= (<Scheme-Value> <List>)
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 7
 ;; cartesian-product:
 ;; Proposito:
@@ -224,8 +225,26 @@
         )
     )
   )
-(cartesian-product '(a b c) '(x y))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(cartesian-product '() '())
+;; Resultado esperado: ()
+
+(cartesian-product '() '(x y z))
+;; Resultado esperado: ()
+
+(cartesian-product '(a b) '())
+;; Resultado esperado: ()
+
 (cartesian-product '(p q r) '(5 6 7))
+;; Resultado esperado: ((p 5) (p 6) (p 7)
+;;(q 5) (q 6) (q 7) (r 5) (r 6) (r 7))
+
+(cartesian-product '(a b c) '(x))
+;; Resultado esperado: ((a x) (b x) (c x))
 
 ;; Ejercicio 8
 ;; mapping:
