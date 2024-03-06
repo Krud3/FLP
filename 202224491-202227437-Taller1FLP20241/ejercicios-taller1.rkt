@@ -604,6 +604,7 @@
 (Operar-binarias '(4 multiplica -5))
 ;; Resultado esperado: -20
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
 ;; Proposito:
@@ -644,8 +645,22 @@
         )
     )
   )
-(prod-scalar-matriz '((1 1) (2 2)) '(2 3))
-(prod-scalar-matriz '((1 1) (2 2) (3 3)) '(2 3))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(prod-scalar-matriz '((1 2) (3 4)) '(5 6))
+;; Resultado esperado: '((5 12) (15 24))
+
+(prod-scalar-matriz '() '())
+;; Resultado esperado: '()
+
+(prod-scalar-matriz '((1) (2)) '(0))
+;; Resultado esperado: ((0) (0))
+
+(prod-scalar-matriz '((1 2 3) (4 5 6)) '(7 8 9))
+;; Resultado esperado: '((7 16 27) (28 40 54))
 
 
 ;; Ejercicio 18
