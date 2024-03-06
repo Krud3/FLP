@@ -269,6 +269,7 @@
 ;;             ::= (<Pair> <List-pair>)
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 9
 ;; reverse:
 ;; Proposito:
@@ -287,9 +288,22 @@
         )
     )
   )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(reverse '())
+;; Resultado esperado: '()
+
+(reverse '(3 "hello" a (1 2) b))
+;; Resultado esperado: '(b (1 2) a "hello" 3)
+
 (reverse '(2 3 8 6 1))
-(reverse '(1 2 3 4))
-(reverse '(h o l a m u n d o))
+;; Resultado esperado: '(1 6 8 3 2)
+
+(reverse '(1 "dos" 3 'cuatro))
+;; Resultado esperado: '(cuatro 3 "dos" 1)
 
 ;; Ejercicio 10
 ;; flatten:
