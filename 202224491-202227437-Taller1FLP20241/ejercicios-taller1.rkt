@@ -43,6 +43,7 @@
 (invert '(('(e s) "racket") ("genial" "muy") (17 29) (81 'o)))
 ;; Resultado esperado: (("racket" (e s)) ("muy" "genial") (29 17) ('o 81))
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 2
 ;; down:
 ;; Proposito:
@@ -52,8 +53,6 @@
 ;;
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
-
-
 
 (define down
   (lambda (remaining_list)
@@ -72,6 +71,22 @@
               )
 )
   )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(down '())
+;; Resultado esperado: '()
+
+(down '(1 2 3 4))
+;; Resultado esperado: '((1) (2) (3) (4))
+
+(down '((1 2) (3 4) a b))
+;; Resultado esperado: '(((1 2)) ((3 4)) (a) (b))
+
+(down '(a (a (a b)) a))
+;; Resultado esperado: '((a) ((a (a b))) (a))
 
 ;; ---------------------------------------------------------- ;;
 ;; Ejercicio 3
