@@ -50,15 +50,7 @@
      )
   )
 )
-
-(define downed
-  (lambda (remaining_list)
-    (if (null? remaining_list)
-        empty
-        (list (car remaining_list) (downed (cdr remaining_list)) )
-              )
-)
-  )
+  
 
 ;; Ejercicio 3
 ;; list-set:
@@ -261,11 +253,12 @@
   (lambda (l)
    (if (null? l) '()
     (if (list? l)
-      (cons (flatten (car l)) (flatten (cdr l)))
-      l
+      (append (flatten (car l)) (flatten (cdr l)))
+      (cons l empty)
      )
    )
-  ))
+ )
+)
   
   
 
