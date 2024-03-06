@@ -741,6 +741,16 @@
     )
   )
 
+;; p-s-m-helper:
+;; Propósito:
+;; p-s-m-helper: <List> lst-1 <List> lst-2 -> <List> R
+;; Esta función auxiliar se encarga de multiplicar,
+;; elemento a elemento, los correspondientes elementos
+;; de dos listas (lst-1 y lst-2). Devuelve una nueva
+;; lista R que contiene el resultado de estas multiplicaciones
+;; individuales.
+
+
 (define p-s-m-helper
   (lambda (lst-1 lst-2)
     (if (null? lst-1)
