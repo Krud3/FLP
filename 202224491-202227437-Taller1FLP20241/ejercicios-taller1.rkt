@@ -257,6 +257,18 @@
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
 
+(define flatten
+  (lambda (l)
+   (if (null? l) '()
+    (if (list? l)
+      (cons (flatten (car l)) (flatten (cdr l)))
+      l
+     )
+   )
+  ))
+  
+  
+
 
 ;; Ejercicio 11
 ;; unzip:
