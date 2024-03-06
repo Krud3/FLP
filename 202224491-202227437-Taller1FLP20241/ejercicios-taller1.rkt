@@ -26,10 +26,24 @@
         )
     )
   )
-(invert '((a 1) (a 2) (1 b) (2 b)))
-(invert '((5 9) (10 91) (82 7) (a e) ("hola" "Mundo")))
-(invert '(("es" "racket") ("genial" "muy") (17 29) (81 o)))
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(invert '())
+;; Resultado esperado: ()
+
+(invert '((a 1) (b 2) (c 3)))
+;; Resultado esperado: ((1 a) (2 b) (3 c))
+
+(invert '(("hola" "mundo") ("foo" "bar")))
+;; Resultado esperado: (("mundo" "hola") ("bar" "foo"))
+
+(invert '(('(e s) "racket") ("genial" "muy") (17 29) (81 'o)))
+;; Resultado esperado: (("racket" (e s)) ("muy" "genial") (29 17) ('o 81))
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 2
 ;; down:
 ;; Proposito:
@@ -39,8 +53,6 @@
 ;;
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
-
-
 
 (define down
   (lambda (remaining_list)
@@ -52,6 +64,23 @@
 )
   
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(down '())
+;; Resultado esperado: '()
+
+(down '(1 2 3 4))
+;; Resultado esperado: '((1) (2) (3) (4))
+
+(down '((1 2) (3 4) a b))
+;; Resultado esperado: '(((1 2)) ((3 4)) (a) (b))
+
+(down '(a (a (a b)) a))
+;; Resultado esperado: '((a) ((a (a b))) (a))
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 3
 ;; list-set:
 ;; Proposito:
@@ -65,15 +94,29 @@
 
 (define list-set
   (lambda (lst n x)
-    (if (= n 0)
-        (cons x  (cdr lst))
-        (cons (car lst) (list-set (cdr lst) (- n 1) x))
-        )
+    (cond
+      [(null? lst) (if (= n 0) (list x) '())]
+      [(= n 0) (cons x (cdr lst))]
+      [else (cons (car lst) (list-set (cdr lst) (- n 1) x))]
+      )
     )
   )
-(list-set '(a b c d) 2 '(1 2))
-(list-set '(a b c d) 3 '(1 5 10))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(list-set '() 0 'x)
+;; Resultado esperado: (x)
+
 (list-set '(1 2 3 4 5) 2 '(a b))
+;; Resultado esperado: (1 2 (a b) 4 5)
+
+(list-set '(a b c d) 3 'x)
+;; Resultado esperado: (a b c x)
+
+(list-set '(b b '(1 2) d) 2 '(a k o))
+;; Resultado esperado: (b b (a k o) d)
 
 ;; Ejercicio 4
 ;; filter-in:
@@ -102,6 +145,7 @@
 )
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 5
 ;; mix:
 ;; Proposito:
@@ -122,9 +166,22 @@
         )
     )
   )
-(mix '(1 2 3 4 5) '(6 7 8 9 10))
-(mix '(a b c) '(7 8 9))
-(mix '(1 (5 2) foo) '(h (1 3) flp))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(mix '() '())
+;; Resultado esperado: ()
+
+(mix '() '(1 2 3))
+;; Resultado esperado: ()
+
+(mix '(a b c) '(1 2 3))
+;; Resultado esperado: (a 1 b 2 c 3)
+
+(mix '(a "hello" 3) '(1 'b "world"))
+;; Resultado esperado: (a 1 "hello" 'b 3 "world")
 
 ;; Ejercicio 6
 ;; swapper:
@@ -148,6 +205,7 @@
 )
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 7
 ;; cartesian-product:
 ;; Proposito:
@@ -181,8 +239,26 @@
         )
     )
   )
-(cartesian-product '(a b c) '(x y))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(cartesian-product '() '())
+;; Resultado esperado: ()
+
+(cartesian-product '() '(x y z))
+;; Resultado esperado: ()
+
+(cartesian-product '(a b) '())
+;; Resultado esperado: ()
+
 (cartesian-product '(p q r) '(5 6 7))
+;; Resultado esperado: ((p 5) (p 6) (p 7)
+;;(q 5) (q 6) (q 7) (r 5) (r 6) (r 7))
+
+(cartesian-product '(a b c) '(x))
+;; Resultado esperado: ((a x) (b x) (c x))
 
 ;; Ejercicio 8
 ;; mapping:
@@ -217,6 +293,7 @@
 )
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 9
 ;; reverse:
 ;; Proposito:
@@ -235,9 +312,22 @@
         )
     )
   )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(reverse '())
+;; Resultado esperado: '()
+
+(reverse '(3 "hello" a (1 2) b))
+;; Resultado esperado: '(b (1 2) a "hello" 3)
+
 (reverse '(2 3 8 6 1))
-(reverse '(1 2 3 4))
-(reverse '(h o l a m u n d o))
+;; Resultado esperado: '(1 6 8 3 2)
+
+(reverse '(1 "dos" 3 'cuatro))
+;; Resultado esperado: '(cuatro 3 "dos" 1)
 
 ;; Ejercicio 10
 ;; flatten:
@@ -263,6 +353,7 @@
   
 
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 11
 ;; unzip:
 ;; Proposito:
@@ -303,13 +394,28 @@
         )
     )
   )
-(unzip '((1 2) (3 4) (5 6)))
-(unzip '((a 1) (b 2) (c 3)))
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(unzip '())
+;; Resultado esperado: '(() ())
+
+(unzip '((1 2) (3 4) (5 6)))
+;; Resultado esperado: '((1 3 5) (2 4 6))
+
+(unzip '((a "hello") (b "world") (c "!")))
+;; Resultado esperado: '((a b c) ("hello" "world" "!"))
+
+(unzip '(((1 2) a) ((3 4) b) ((5 6) c)))
+;; Resultado esperado: '(((1 2) (3 4) (5 6)) (a b c))
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 12
 ;; scan:
 ;; Proposito:
-;; scan : <List> L <Scheme-value> n <lambda-binary> F -> <List> L':
+;; scan : <List> L <Int> n <lambda-binary> F -> <List> L':
 ;; Procedimiento encargado de tomar el elemento n y aplicar la
 ;; funcion binaria F con cada elemento de la lista de forma acomulativa
 ;; retornando una lista con cada resultado parcial empezando con el
@@ -320,7 +426,33 @@
 ;; <List> ::= ()
 ;;        ::= (<Scheme-Value> <List>)
 
+(define scan
+  (lambda (L n F)
+    (if (null? L)
+        (list n)  
+        (let ((new-n (F n (car L)))) 
+          (cons n  
+                (scan (cdr L) new-n F)
+                )
+          )
+        )
+    )
+  )
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(scan '() 10 +)
+;; Resultado esperado: '(10)
+
+(scan '(1 2 3) 10 -)
+;; Resultado esperado: '(10 9 7 4)
+
+(scan '(2 4) 8 /)
+;; Resultado esperado: '(8 4 1)
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 13
 ;; operate:
 ;; Proposito:
@@ -348,9 +480,23 @@
                )
       )
     )  
-  )  
-(operate (list + * + - *) '(1 2 8 4 11 6))
-(operate (list *) '(4 5))
+  )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(operate (list +) '(3 4))
+;; Resultado esperado: 7
+
+(operate (list + * -) '(2 3 4 5))
+;; Resultado esperado: 15
+
+(operate (list / - +) '(12 4 3 6))
+;; Resultado esperado: 6
+
+(operate (list + * - /) '(5 6 3 4 2))
+;; Resultado esperado: 14.5
 
 ;; -----------------------1.1.2------------------------------ ;;
 ;; Ejercicio 14
@@ -368,7 +514,39 @@
 ;; <route-List> ::= ()
 ;;              ::= ('right <route-List>) | ('left <route-List>)
 
+(define path
+  (lambda (n A)
+    (cond [(null? A) empty]
+          [else (cond
+                  [(= n (car A)) empty]
+                  [(< n (car A)) (cons 'left (path n (cadr A)))]
+                  [(> n (car A)) (cons 'right (path n (caddr A)))]
+                  )
+                ]
+          )
+    )
+  )
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(path 17 '())
+;; Resultado esperado: '()
+
+(path 14 '(14 (7 () ()) (26 () ())))
+;; Resultado esperado: '()
+
+(path 1 '(8 (3 (1 () ()) (6 () ())) (10 () ())))
+;; Resultado esperado: '(left left)
+
+(path 31 '(14 (7 () (12 () ())) (26 (20 (17 () ())) (31 () ()))))
+;; Resultado esperado: '(right right)
+
+(path 1 '(8 (3 (1 () ()) (6 () ())) (10 () ())))
+;; Resultado esperado: '(left left)
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 15
 ;; inorder:
 ;; Proposito:
@@ -393,9 +571,21 @@
         )
     )
   )
-(inorder '(21 (0 (4 () ()) (4 () ()))(52 (14 (6 (8 () ()) ())(5 () ()))(19 () ()))))
-(inorder '(14 (7 () (12 () ()))(26 (20 (17 () ())())(31 () ()))))
 
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(inorder '())
+;; Resultado esperado: '()
+
+(inorder '(10 (5 (2 () ()) (8 () ())) (15 (12 () ()) (20 () ()))))
+;; Resultado esperado: '(2 5 8 10 12 15 20)
+
+(inorder '(42 () ()))
+;; Resultado esperado: '(42)
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 16
 ;; Operar-binarias:
 ;; Proposito:
@@ -408,7 +598,50 @@
 ;;              ::= (<OperacionB> 'resta <OperacionB>)
 ;;              ::= (<OperacionB> 'multiplica <OperacionB>)
 
+(define o-b-helper
+  (lambda (element value-1 value-2)
+    (cond
+      [(eqv? element 'suma) (+ value-1 value-2)]
+      [(eqv? element 'resta) (- value-1 value-2)]
+      [(eqv? element 'multiplica) (* value-1 value-2)]
+      )
+    )
+  )
 
+(define Operar-binarias
+  (lambda (operacionB)
+    (if (number? operacionB)
+      operacionB  
+      (let ((op (cadr operacionB))
+            (val-1 (Operar-binarias (car operacionB)))
+            (val-2 (Operar-binarias (caddr operacionB))))
+        (o-b-helper op val-1 val-2)
+        )
+      )
+    )
+  )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(Operar-binarias '((3 resta (4 multiplica 1))
+                   multiplica ((2 resta 3) suma 11)))
+;; Resultado esperado: -10
+
+(Operar-binarias '((10 resta 2) multiplica (1 suma 3)))
+;; Resultado esperado: 32
+
+(Operar-binarias '(3 suma 4))
+;; Resultado esperado: 7
+
+(Operar-binarias '(5 resta 3))
+;; Resultado esperado: 2
+
+(Operar-binarias '(4 multiplica -5))
+;; Resultado esperado: -20
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 17
 ;; prod-scalar-matriz:
 ;; Proposito:
@@ -449,8 +682,22 @@
         )
     )
   )
-(prod-scalar-matriz '((1 1) (2 2)) '(2 3))
-(prod-scalar-matriz '((1 1) (2 2) (3 3)) '(2 3))
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(prod-scalar-matriz '((1 2) (3 4)) '(5 6))
+;; Resultado esperado: '((5 12) (15 24))
+
+(prod-scalar-matriz '() '())
+;; Resultado esperado: '()
+
+(prod-scalar-matriz '((1) (2)) '(0))
+;; Resultado esperado: ((0) (0))
+
+(prod-scalar-matriz '((1 2 3) (4 5 6)) '(7 8 9))
+;; Resultado esperado: '((7 16 27) (28 40 54))
 
 
 ;; Ejercicio 18
