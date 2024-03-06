@@ -206,6 +206,7 @@
 (mix '(a "hello" 3) '(1 'b "world"))
 ;; Resultado esperado: (a 1 "hello" 'b 3 "world")
 
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 6
 ;; swapper:
 ;; Proposito:
@@ -226,6 +227,19 @@
       [else (cons (car a-list) (swapper e1 e2 (cdr a-list)))])
   )
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(swapper 1 'one '(1 2 3 one 4 one 1))
+;; Resultado esperado: '(one 2 3 1 4 1 one)
+
+(swapper 'a 'b '(a b a b c a b))
+;; Resultado esperado: '(b a b a c b a)
+
+(swapper 'a 'z '(a b c a d))
+;; Resultado esperado: '(z b c z d)
 
 
 ;; ---------------------------------------------------------- ;;
