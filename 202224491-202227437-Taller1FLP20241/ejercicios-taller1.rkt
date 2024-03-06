@@ -667,6 +667,12 @@
 ;;              ::= (<OperacionB> 'resta <OperacionB>)
 ;;              ::= (<OperacionB> 'multiplica <OperacionB>)
 
+;; o-b-helper:
+;; Proposito:
+;; o-b-helper : <OperacionB> element <Int> value-1 <Int> value-2 -> <Int> R:
+;; Funcion auxiliar encargada de transformar element a su equivalente suma,
+;; resta o multiplica (dependiendo del caso) y retorna el resultado de
+;; aplicar esa operacion entre value-1 y value-2.
 (define o-b-helper
   (lambda (element value-1 value-2)
     (cond
