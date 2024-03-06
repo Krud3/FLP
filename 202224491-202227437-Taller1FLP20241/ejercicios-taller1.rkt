@@ -297,6 +297,8 @@
 (cartesian-product '(a b c) '(x))
 ;; Resultado esperado: ((a x) (b x) (c x))
 
+
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 8
 ;; mapping:
 ;; Proposito:
@@ -328,6 +330,22 @@
       )
   )
 )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(mapping (lambda (x) (* x x)) '() '())
+;; Resultado esperado: '()
+
+(mapping (lambda (x) (+ x 3)) '(1 2 3) '(4 5 7))
+;; Resultado esperado: '((1 4) (2 5))
+
+(mapping (lambda (x) (* x 2)) '(1 2 3) '(2 4))
+;; Resultado esperado: '((1 2) (2 4))
+
+(mapping (lambda (x) (string-append (number->string x) "s")) '(1 2 3 4) '("1s" "2s" "3s"))
+;; Resultado esperado: '((1 "1s") (2 "2s") (3 "3s"))
 
 
 ;; ---------------------------------------------------------- ;;
