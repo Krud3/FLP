@@ -805,7 +805,7 @@
 (prod-scalar-matriz '((1 2 3) (4 5 6)) '(7 8 9))
 ;; Resultado esperado: '((7 16 27) (28 40 54))
 
-
+;; ---------------------------------------------------------- ;;
 ;; Ejercicio 18
 ;; pascal:
 ;; Proposito:
@@ -825,6 +825,14 @@
   )
 )
 
+;; pascal-accumulate-helper:
+;; Proposito:
+;; pascal-accumulate-helper : <List> lst <Int> n <Int> cdt -> <List> R:
+;; Funcion auxiliar que se encarga de generar la siguiente lista pascal 
+;; segun sea el valor actual del acumulador, adicionando 0 a la cabeza
+;; de una lista y 0 a la otra lista aniadiendolo a su ultima posicion.
+;; Retornando las dos listas generadas elemento por elemento.
+
 (define pascal-accumulate-helper
   (lambda (lst n ctd)
     (if (> ctd n) lst
@@ -837,6 +845,11 @@
   )
 )
 
+;; list-sum:
+;; Proposito:
+;; list-sum : <List> lst-1 <List> lst-2 -> <List> R:
+;; Funcion auxiliar encargada de hacer la suma vectorial.
+
 (define list-sum
   (lambda (lst-1 lst-2)
     (if (null? lst-1)
@@ -847,3 +860,20 @@
      )
    )
  )
+
+;-----------------------------------
+;--------EJEMPLOS DE PRUEBA---------
+;-----------------------------------
+
+(pascal 14)
+;; Resultado esperado: '(1 13 78 286 715
+;; 1287 1716 1716 1287 715 286 78 13 1)
+
+(pascal 1)
+;; Resultado esperado: '(1)
+
+(pascal 0)
+;; Resultado esperado: '()
+
+(pascal 10)
+;; Resultado esperado: '(1 9 36 84 126 126 84 36 9 1)
