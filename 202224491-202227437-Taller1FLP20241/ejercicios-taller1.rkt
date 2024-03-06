@@ -268,6 +268,14 @@
         )
     )
   )
+
+;; car-pro-helper:
+;; Proposito:
+;; car-pro-helper : <List> lst <Scheme-value> val -> <List> R:
+;; Funcion auxiliar que entrando como parametro una lista lst y un
+;; scheme-value val, retorna la lista de tuplas de combinaciones
+;; entre val y cada elemento de lst.
+
 (define car-pro-helper
   (lambda (lst val)
     (if (null? lst)
