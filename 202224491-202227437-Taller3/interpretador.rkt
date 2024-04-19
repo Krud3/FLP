@@ -67,7 +67,7 @@
     (expression "\"" texto "\"" texto-lit)
     (expression (identificador) var-exp)
     (expression
-      ("(" expression primapp-bin-exp expression ")")
+      ("(" expression primitiva-binaria expression ")")
       primapp-bin-exp
       )    
     (expression
