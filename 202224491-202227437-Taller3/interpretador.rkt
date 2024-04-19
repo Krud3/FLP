@@ -46,7 +46,7 @@
    (whitespace) skip)
   (comment
    ("%" (arbno (not #\newline))) skip)
-  (identifier
+  (identificador
    ("@" (letter (arbno (or letter digit "?")))) symbol)
   (number
    (digit (arbno digit)) number)
@@ -56,15 +56,18 @@
    (digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
   (number
    ("-" digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
-  ))
+  (texto
+   (letter (arbno (or letter digit "?"))) symbol)
+   )
+  )
 
 
 ;Especificación Sintáctica (gramática)
 
-(define grammar-simple-interpreter
+(define grammar-interpreter
   '((program (expression) un-programa)
-    (expression (num) numero-lit)
-    (expression "\"" texto "\"" texto-lit)
+    (expression (number) numero-lit)
+    (expression ("\"" texto "\"") texto-lit)
     (expression (identificador) var-exp)
     (expression
       ("(" expression primitiva-binaria expression ")")
@@ -76,10 +79,13 @@
       (primitiva-unaria ("add1")     primitiva-add1)
       (primitiva-unaria ("sub1")     primitiva-sub1)
       (primitiva-unaria ("longitud") primitiva-longitud)
-      (primitiva-unaria ("+")        primitiva-suma)
-      (primitiva-unaria ("~")        primitiva-resta)
-      (primitiva-unaria ("*")        primitiva-multi)
-      (primitiva-unaria ("/")        primitiva-div)
-      (primitiva-unaria ("concat")   primitiva-concat)
+      (primitiva-binaria ("+")        primitiva-suma)
+      (primitiva-binaria ("~")        primitiva-resta)
+      (primitiva-binaria ("*")        primitiva-multi)
+      (primitiva-binaria ("/")        primitiva-div)
+      (primitiva-binaria ("concat")   primitiva-concat)
      )
     )
+
+
+
