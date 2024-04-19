@@ -88,4 +88,33 @@
     )
 
 
+;;Construcion automatica de los data-types
+(sllgen:make-define-datatypes scanner-spec-interpreter grammar-interpreter)
 
+
+;;Para mostrar los tipos generados 
+(define show-the-datatypes
+  (lambda () (sllgen:list-define-datatypes scanner-spec-interpreter grammar-interpreter)))
+
+
+;*******************************************************************************************
+;Parser, Scanner, Interfaz
+
+;El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
+
+;(define scan&parse
+  ;(sllgen:make-string-parser scanner-spec-interpreter grammar-interpreter))
+
+;El Analizador Léxico (Scanner)
+
+;(define just-scan
+  ;(sllgen:make-string-scanner scanner-spec-interpreter grammar-interpreter))
+
+;El Interpretador (FrontEnd + Evaluación + señal para lectura )
+
+;(define interpretador
+;  (sllgen:make-rep-loop "--> "
+;    (lambda (pgm) (eval-program  pgm))
+;    (sllgen:make-stream-parser 
+;      scanner-spec-interpreter
+;      grammar-interpreter)))
