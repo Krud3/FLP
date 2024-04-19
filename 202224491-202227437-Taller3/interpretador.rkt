@@ -38,3 +38,22 @@
 
 ;******************************************************************************************
 
+;******************************************************************************************
+;Especificación Léxica
+
+(define scanner-spec-interpreter
+'((white-sp
+   (whitespace) skip)
+  (comment
+   ("%" (arbno (not #\newline))) skip)
+  (identifier
+   ("@" (letter (arbno (or letter digit "?")))) symbol)
+  (number
+   (digit (arbno digit)) number)
+  (number
+   ("-" digit (arbno digit)) number)
+  (number
+   (digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
+  (number
+   ("-" digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
+  ))
