@@ -26,7 +26,7 @@
 ;;                      := <primitiva-unaria> (<expresion>)
 ;;                          primapp-un-exp (prim-unaria exp)
 ;;
-;;  <primitiva-binaria> := +(primitiva-suma)
+;;  <primitiva-binaria> := +       (primitiva-suma)
 ;;                      :=  ~      (primitiva-resta)
 ;;                      :=  /      (primitiva-div)
 ;;                      :=  *      (primitiva-multi)
@@ -57,3 +57,29 @@
   (number
    ("-" digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
   ))
+
+
+;Especificación Sintáctica (gramática)
+
+(define grammar-simple-interpreter
+  '((program (expression) un-programa)
+    (expression (num) numero-lit)
+    (expression "\"" texto "\"" texto-lit)
+    (expression (identificador) var-exp)
+    (expression
+      ("(" expression primitiva-binaria expression ")")
+      primapp-bin-exp
+      )    
+    (expression
+      (primitiva-unaria "(" (separated-list expression ",")")")
+        primapp-un-exp)
+      (primitiva-unaria ("add1")     primitiva-add1)
+      (primitiva-unaria ("sub1")     primitiva-sub1)
+      (primitiva-unaria ("longitud") primitiva-longitud)
+      (primitiva-unaria ("+")        primitiva-suma)
+      (primitiva-unaria ("~")        primitiva-resta)
+      (primitiva-unaria ("*")        primitiva-multi)
+      (primitiva-unaria ("/")        primitiva-div)
+      (primitiva-unaria ("concat")   primitiva-concat)
+     )
+    )
