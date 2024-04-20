@@ -57,7 +57,7 @@
   (number
    ("-" digit (arbno digit) (or "." ",") digit (arbno digit)) number)
   (texto
-   (letter (arbno (or letter digit "?"))) symbol)
+   ("\"" (arbno any) "\"") string)
    )
   )
 
@@ -67,7 +67,7 @@
 (define grammar-interpreter
   '((program (expression) un-programa)
     (expression (number)  numero-lit)
-    (expression ("\"" texto "\"") texto-lit)
+    (expression (texto) texto-lit)
     (expression (identificador) var-exp)
     (expression
       ("(" expression primitiva-binaria expression ")")
@@ -122,22 +122,26 @@
 ;*****************************************************************************
 
 ;Valido todo valor de Scheme
-(define scheme-value? (lambda (v) #t))
+(define scheme-value?
+  (lambda (v) #t)
+)
 
-;definición del tipo de dato ambiente
+;Definición del tipo de dato ambiente
 (define-datatype environment environment?
   (empty-env-record)
   (extended-env-record (syms (list-of symbol?))
                        (vals (list-of scheme-value?))
-                       (env environment?)))
+                       (env environment?)
+  )
+)
 
 ;empty-env:      -> enviroment
-;función que crea un ambiente vacío
+;Función que crea un ambiente vacío
 (define empty-env  
   (lambda ()
     (empty-env-record)))
 
-;extend-env: <list-of symbols> <list-of numbers> enviroment -> enviroment
+;extend-env: <list-of symbols> <list-of numbers> <enviroment> -> enviroment
 ;función que crea un ambiente extendido
 (define extend-env
   (lambda (syms vals env)
@@ -147,9 +151,12 @@
 (define init-env
   (lambda ()
     (extend-env
-     '(i v x)
-     '(1 5 10)
-     (empty-env))))
+     '(@a @b @c @d @e)
+     '(123 "hola" "FLP")
+     (empty-env)
+    )
+  )
+)
 
 
 ;; El punto de entrada del programa
@@ -157,7 +164,11 @@
   (lambda (pgm) pgm
     (cases program pgm
       (un-programa (body) 
-                 (eval-expression body (init-env))))))
+                     (eval-expression body (init-env))
+      )
+    )
+  )
+)
 
 
 
@@ -166,10 +177,12 @@
 (define eval-expression
   (lambda (exp env)
    (cases expression exp
-     (numero-lit (num) numero)
-     (texto-lit (text) texto)
+     (numero-lit (num) num)
+     (texto-lit (texto) texto)
      (var-exp (id) (apply-env env id))
-     (primapp-bin-exp (lhs bin-op rhs))
+     (primapp-bin-exp (lhs bin-op rhs)
+           (apply-binary-primitive bin-op (eval-expression lhs) (eval-expression rhs))
+                      )
      (primapp-un-exp (un-op rands)
                       (let ((args (eval-rands rands env)))
                         (apply-unary-primitive un-op args)
@@ -202,4 +215,18 @@
       (primitiva-sub1 () (- (car args) (cadr args)))
       (primitiva-longitud () (string-length args))
       )))
+
+
+(define apply-binary-primitive
+  (lambda (bin-prim arg1 arg2)
+    (cases primitiva-binaria bin-prim
+      (primitiva-suma   () (+ arg1 arg2))
+      (primitiva-resta  () (- arg1 arg2))
+      (primitiva-multi  () (* arg1 arg2))
+      (primitiva-div    () (/ arg1 arg2))
+      (primitiva-concat () (append arg1 arg2))
+    )
+  )
+)
+
 
