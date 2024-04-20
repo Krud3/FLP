@@ -47,15 +47,15 @@
   (comment
    ("%" (arbno (not #\newline))) skip)
   (identificador
-   ("@" (letter (arbno (or letter digit "?")))) symbol)
+   ("@" letter (arbno (or letter digit "?"))) symbol)
   (number
    (digit (arbno digit)) number)
   (number
    ("-" digit (arbno digit)) number)
   (number
-   (digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
+   (digit (arbno digit) (or "." ",") digit (arbno digit)) number)
   (number
-   ("-" digit (arbno digit)) (or "." ",") (digit (arbno digit)) number)
+   ("-" digit (arbno digit) (or "." ",") digit (arbno digit)) number)
   (texto
    (letter (arbno (or letter digit "?"))) symbol)
    )
@@ -74,11 +74,11 @@
       primapp-bin-exp
       )    
     (expression
-      (primitiva-unaria "(" (separated-list expression ",")")")
+      (primitiva-unaria "(" (separated-list expression ",") ")")
         primapp-un-exp)
-      (primitiva-unaria ("add1")     primitiva-add1)
-      (primitiva-unaria ("sub1")     primitiva-sub1)
-      (primitiva-unaria ("longitud") primitiva-longitud)
+      (primitiva-unaria  ("add1")     primitiva-add1)
+      (primitiva-unaria  ("sub1")     primitiva-sub1)
+      (primitiva-unaria  ("longitud") primitiva-longitud)
       (primitiva-binaria ("+")        primitiva-suma)
       (primitiva-binaria ("~")        primitiva-resta)
       (primitiva-binaria ("*")        primitiva-multi)
@@ -102,13 +102,13 @@
 
 ;El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
 
-;(define scan&parse
-  ;(sllgen:make-string-parser scanner-spec-interpreter grammar-interpreter))
+(define scan&parse
+  (sllgen:make-string-parser scanner-spec-interpreter grammar-interpreter))
 
 ;El Analizador Léxico (Scanner)
 
-;(define just-scan
-  ;(sllgen:make-string-scanner scanner-spec-interpreter grammar-interpreter))
+(define just-scan
+  (sllgen:make-string-scanner scanner-spec-interpreter grammar-interpreter))
 
 ;El Interpretador (FrontEnd + Evaluación + señal para lectura )
 
