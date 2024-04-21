@@ -77,11 +77,13 @@
     (expression
       (primitiva-unaria "(" (separated-list expression ",") ")")
         primapp-un-exp)
-      (expression ("declarar" "(" (arbno
-       identifier "=" expression) (arbno (separated-list (identifier "=" expression) ",") 
-        ")"
-        "{" expression "}") 
+      (expression ("declarar" "(" (separated-list identificador "=" expression ";") ")"
+          "{" expression "}") 
             variableLocal-exp)
+      (expression ("procedimiento" "(" (separated-list identificador ",") ")" 
+                                        "haga" expression "finProc")
+                procedimiento-exp)
+
       (expression ("Si" expression "entonces" expression "sino" expression "finSI") condicional-exp)                   
       (primitiva-unaria  ("add1")     primitiva-add1)
       (primitiva-unaria  ("sub1")     primitiva-sub1)
@@ -95,6 +97,7 @@
   
      )
     )
+
 
 
 ;;Construcion automatica de los data-types
@@ -203,6 +206,10 @@
                           (eval-expression false-exp env)
                       )
      )
+     (variableLocal-exp (ids rands body) ids
+                      (let ((args (eval-rands rands env)))
+                            (eval-expression body (extend-env ids args env))))
+      (procedimiento-exp (ids body) (cerradura ids body env))
     )
   )
 )
@@ -296,3 +303,20 @@
               (if (number? list-index-r)
                 (+ list-index-r 1)
                 #f))))))
+
+;***********************************************************************************************************************
+;*********************************************     Procedimientos     **************************************************
+;***********************************************************************************************************************
+
+(define-datatype procVal procVal?
+  (cerradura
+   (ids (list-of symbol?))
+   (body expression?)
+   (env environment?)))
+
+;apply-procedure: evalua el cuerpo de un procedimientos en el ambiente extendido correspondiente
+(define apply-procedure
+  (lambda (proc args)
+    (cases procVal proc
+      (cerradura (ids body env)
+               (eval-expression body (extend-env ids args env))))))
