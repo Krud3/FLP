@@ -25,6 +25,9 @@
 ;;
 ;;                      := <primitiva-unaria> (<expresion>)
 ;;                          primapp-un-exp (prim-unaria exp)
+
+;;  <expresion>         := Si <expresion> entonces <expresion>  sino <expresion> finSI
+;;                         condicional-exp (test-exp true-exp false-exp)
 ;;
 ;;  <primitiva-binaria> := +       (primitiva-suma)
 ;;                      :=  ~      (primitiva-resta)
@@ -57,10 +60,8 @@
   (number
    ("-" digit (arbno digit) (or "." ",") digit (arbno digit)) number)
   (texto
-   ("\"" (arbno any) "\"") string)
-   )
-  )
-
+   (#\" (arbno (or letter digit " " "!" "?" ";" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "@" "+" "=")) #\") string)
+  ))
 
 ;Especificación Sintáctica (gramática)
 
@@ -72,18 +73,26 @@
     (expression
       ("(" expression primitiva-binaria expression ")")
       primapp-bin-exp
-      )    
+      )   
     (expression
       (primitiva-unaria "(" (separated-list expression ",") ")")
         primapp-un-exp)
+      (expression ("declarar" "(" (arbno
+       identifier "=" expression) (arbno (separated-list (identifier "=" expression) ",") 
+        ")"
+        "{" expression "}") 
+            variableLocal-exp)
+      (expression ("Si" expression "entonces" expression "sino" expression "finSI") condicional-exp)                   
       (primitiva-unaria  ("add1")     primitiva-add1)
       (primitiva-unaria  ("sub1")     primitiva-sub1)
+      (primitiva-unaria  ("zero?")    primitiva-zero)
       (primitiva-unaria  ("longitud") primitiva-longitud)
       (primitiva-binaria ("+")        primitiva-suma)
       (primitiva-binaria ("~")        primitiva-resta)
       (primitiva-binaria ("*")        primitiva-multi)
       (primitiva-binaria ("/")        primitiva-div)
       (primitiva-binaria ("concat")   primitiva-concat)
+  
      )
     )
 
@@ -152,7 +161,7 @@
   (lambda ()
     (extend-env
      '(@a @b @c @d @e)
-     '(123 "hola" "FLP")
+     '(1 2 3 "hola" "FLP")
      (empty-env)
     )
   )
@@ -178,21 +187,53 @@
   (lambda (exp env)
    (cases expression exp
      (numero-lit (num) num)
-     (texto-lit (texto) texto)
+     (texto-lit (text) (trim-quotes text ))
      (var-exp (id) (apply-env env id))
-     (primapp-bin-exp (lhs bin-op rhs)
-           (apply-binary-primitive bin-op (eval-expression lhs) (eval-expression rhs))
+     (primapp-bin-exp (lhs bin-op rhs) 
+           (apply-binary-primitive bin-op (eval-expression lhs env) (eval-expression rhs env))
                       )
      (primapp-un-exp (un-op rands)
                       (let ((args (eval-rands rands env)))
                         (apply-unary-primitive un-op args)
                       )
                      )
+     (condicional-exp (test-exp true-exp false-exp) 
+                      (if (valor-verdad? (eval-expression test-exp env))
+                          (eval-expression true-exp env)
+                          (eval-expression false-exp env)
+                      )
      )
     )
   )
+)
+
+;trim-quotes: string -> string
+;Función que elimina los caracteres dobles comillas agregadas cuando se parsea el string en el scaneo
+(define (trim-quotes s)
+  (let* ((first (string-ref s 0))
+         (last (string-ref s (- (string-length s) 1)))
+         (start (if (char=? first #\") 1 0))
+         (end (if (char=? last #\") (- (string-length s) 1) (string-length s))))
+    (substring s start end)))
 
 
+
+
+(define apply-env
+  (lambda (env id)
+    (cases environment env
+      (empty-env-record () (eopl:error 'empty-env "Error, la variable no existe ~s" id))
+      (extended-env-record (syms vals old-env)
+                           (let ((pos (list-find-position id syms)))
+                             (if (number? pos)
+                                 (list-ref vals pos)
+                                 (apply-env old-env id)
+                             )
+                           )
+      )
+    )
+  )
+)
                       
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -211,11 +252,16 @@
 (define apply-unary-primitive
   (lambda (prim args)
     (cases primitiva-unaria prim
-      (primitiva-add1 () (+ (car args) (cadr args)))
-      (primitiva-sub1 () (- (car args) (cadr args)))
-      (primitiva-longitud () (string-length args))
+      (primitiva-add1 () (+ (car args) 1))
+      (primitiva-sub1 () (- (car args) 1))
+      (primitiva-longitud () (string-length (car args)))
+      (primitiva-zero () (valor-verdad? (car args)))
       )))
 
+ ;valor-verdad? Determina si un valor dado corresponde a un valor booleano falso o verdadero
+(define valor-verdad?
+  (lambda (x)
+   (not (zero? x))))
 
 (define apply-binary-primitive
   (lambda (bin-prim arg1 arg2)
@@ -224,9 +270,29 @@
       (primitiva-resta  () (- arg1 arg2))
       (primitiva-multi  () (* arg1 arg2))
       (primitiva-div    () (/ arg1 arg2))
-      (primitiva-concat () (append arg1 arg2))
+      (primitiva-concat () (string-append arg1 arg2))
     )
   )
 )
 
 
+;***********************************************************************************************************************
+;************************************************    Funciones Auxiliares    ̈*******************************************
+;***********************************************************************************************************************
+
+; funciones auxiliares para encontrar la posición de un símbolo
+; en la lista de símbolos de unambiente
+
+(define list-find-position
+  (lambda (sym los)
+    (list-index (lambda (sym1) (eqv? sym1 sym)) los)))
+
+(define list-index
+  (lambda (pred ls)
+    (cond
+      ((null? ls) #f)
+      ((pred (car ls)) 0)
+      (else (let ((list-index-r (list-index pred (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
