@@ -56,9 +56,9 @@
   (number
    ("-" digit (arbno digit)) number)
   (number
-   (digit (arbno digit) (or "." ",") digit (arbno digit)) number)
+   (digit (arbno digit)  "." digit (arbno digit)) number)
   (number
-   ("-" digit (arbno digit) (or "." ",") digit (arbno digit)) number)
+   ("-" digit (arbno digit) "." digit (arbno digit)) number)
   (texto
    (#\" (arbno (or letter digit " " "!" "?" ";" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "@" "+" "=")) #\") string)
   ))
@@ -83,8 +83,12 @@
       (expression ("procedimiento" "(" (separated-list identificador ",") ")" 
                                         "haga" expression "finProc")
                 procedimiento-exp)
+      (expression ("evaluar" expression "(" (separated-list expression ",") ")" "finEval")
+                app-exp)
+      (expression ("procRec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expression)  "in" expression) 
+                procrec-exp)
 
-      (expression ("Si" expression "entonces" expression "sino" expression "finSI") condicional-exp)                   
+      (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)                   
       (primitiva-unaria  ("add1")     primitiva-add1)
       (primitiva-unaria  ("sub1")     primitiva-sub1)
       (primitiva-unaria  ("zero?")    primitiva-zero)
@@ -141,11 +145,15 @@
 ;Definición del tipo de dato ambiente
 (define-datatype environment environment?
   (empty-env-record)
-  (extended-env-record (syms (list-of symbol?))
+  (extended-env-record (ids (list-of symbol?))
                        (vals (list-of scheme-value?))
                        (env environment?)
   )
-)
+  (recursively-extended-env-record (proc-names (list-of symbol?))
+                                   (idss (list-of (list-of symbol?)))
+                                   (bodies (list-of expression?))
+                                   (env environment?)))
+
 
 ;empty-env:      -> enviroment
 ;Función que crea un ambiente vacío
@@ -156,8 +164,8 @@
 ;extend-env: <list-of symbols> <list-of numbers> <enviroment> -> enviroment
 ;función que crea un ambiente extendido
 (define extend-env
-  (lambda (syms vals env)
-    (extended-env-record syms vals env))) 
+  (lambda (ids vals env)
+    (extended-env-record ids vals env))) 
 
 ;;Ambiente inicial v0
 (define init-env
@@ -210,9 +218,17 @@
                       (let ((args (eval-rands rands env)))
                             (eval-expression body (extend-env ids args env))))
       (procedimiento-exp (ids body) (cerradura ids body env))
-    )
-  )
-)
+
+      (app-exp (rator rands)
+               (let ((proc (eval-expression rator env))
+                     (args (eval-rands rands env)))
+                 (if (procVal? proc)
+                     (apply-procedure proc args)
+                     (eopl:error 'eval-expression
+                                 "Attempt to apply non-procedure ~s" proc))))
+      (procrec-exp (proc-names idss bodies letrec-body)
+            (eval-expression letrec-body
+                            (extend-env-recursively proc-names idss bodies env))))))
 
 ;trim-quotes: string -> string
 ;Función que elimina los caracteres dobles comillas agregadas cuando se parsea el string en el scaneo
@@ -238,9 +254,14 @@
                              )
                            )
       )
-    )
-  )
-)
+      (recursively-extended-env-record (proc-names idss bodies old-env)
+                                       (let ((pos (list-find-position id proc-names)))
+                                         (if (number? pos)
+                                             (cerradura (list-ref idss pos)
+                                                      (list-ref bodies pos)
+                                                      env)
+                                             (apply-env old-env id)))))))
+
                       
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -320,3 +341,10 @@
     (cases procVal proc
       (cerradura (ids body env)
                (eval-expression body (extend-env ids args env))))))
+
+;extend-env-recursively: <list-of symbols> <list-of <list-of symbols>> <list-of expressions> environment -> environment
+;función que crea un ambiente extendido para procedimientos recursivos
+(define extend-env-recursively
+  (lambda (proc-names idss bodies old-env)
+    (recursively-extended-env-record
+     proc-names idss bodies old-env)))
