@@ -60,7 +60,7 @@
   (number
    ("-" digit (arbno digit) "." digit (arbno digit)) number)
   (texto
-   (#\" (arbno (or letter digit " " "!" "?" ";" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "@" "+" "=")) #\") string)
+   (#\" (arbno (or letter digit " " "!" "?" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "+" "=")) #\") string)
   ))
 
 ;Especificación Sintáctica (gramática)
@@ -348,3 +348,19 @@
   (lambda (proc-names idss bodies old-env)
     (recursively-extended-env-record
      proc-names idss bodies old-env)))
+
+
+
+(eval-program (scan&parse "declarar (
+
+      @radio=2.5;
+
+      @areaCirculo = procedimiento(@r) haga ( 3.141592 * (@r * @r) ) finProc
+
+     ) { 
+
+         evaluar @areaCirculo (@radio) finEval  
+
+       } ")) ;; Return 19.63495
+
+
