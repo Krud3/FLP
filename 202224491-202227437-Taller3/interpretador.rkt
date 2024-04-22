@@ -364,3 +364,15 @@
        } ")) ;; Return 19.63495
 
 
+
+(eval-program (scan&parse
+  "declarar (
+
+      @integrantes = procedimiento() haga  \"Sebastian-Cristian\" finProc
+
+     ) { 
+         evaluar @integrantes () finEval  
+
+       } "
+));; Return "Sebastian-Cristian"
+
