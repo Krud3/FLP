@@ -60,7 +60,7 @@
   (number
    ("-" digit (arbno digit) "." digit (arbno digit)) number)
   (texto
-   (#\" (arbno (or letter digit " " "!" "?" ";" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "@" "+" "=")) #\") string)
+   (#\" (arbno (or letter digit " " "!" "?" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "+" "=")) #\") string)
   ))
 
 ;Especificación Sintáctica (gramática)
@@ -349,9 +349,33 @@
     (recursively-extended-env-record
      proc-names idss bodies old-env)))
 
-
 ;; b)
 ;;declarar(@x=procedimiento(@z) haga sub1(@z) finProc){ procRec @tester(@y) = Si @y entonces (@y * evaluar @tester(evaluar @x(@y) finEval) finEval) sino 1 finSi in evaluar @tester(10) finEval }
 ;;declarar(@x=procedimiento(@z) haga sub1(@z) finProc){ procRec @tester(@y) = Si @y entonces (@y * evaluar @tester(evaluar @x(@y) finEval) finEval) sino 1 finSi in evaluar @tester(5) finEval }
 
 ;; c)
+
+(eval-program (scan&parse "declarar (
+
+      @radio=2.5;
+
+      @areaCirculo = procedimiento(@r) haga ( 3.141592 * (@r * @r) ) finProc
+
+     ) { 
+
+         evaluar @areaCirculo (@radio) finEval  
+
+       } ")) ;; Return 19.63495
+
+
+
+(eval-program (scan&parse
+  "declarar (
+
+      @integrantes = procedimiento() haga  \"Sebastian-Cristian\" finProc
+
+     ) { 
+         evaluar @integrantes () finEval  
+
+       } "
+));; Return "Sebastian-Cristian"
