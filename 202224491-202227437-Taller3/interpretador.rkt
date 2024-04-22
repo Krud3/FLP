@@ -349,7 +349,11 @@
     (recursively-extended-env-record
      proc-names idss bodies old-env)))
 
+;; b)
+;;declarar(@x=procedimiento(@z) haga sub1(@z) finProc){ procRec @tester(@y) = Si @y entonces (@y * evaluar @tester(evaluar @x(@y) finEval) finEval) sino 1 finSi in evaluar @tester(10) finEval }
+;;declarar(@x=procedimiento(@z) haga sub1(@z) finProc){ procRec @tester(@y) = Si @y entonces (@y * evaluar @tester(evaluar @x(@y) finEval) finEval) sino 1 finSi in evaluar @tester(5) finEval }
 
+;; c)
 
 (eval-program (scan&parse "declarar (
 
@@ -375,4 +379,3 @@
 
        } "
 ));; Return "Sebastian-Cristian"
-
