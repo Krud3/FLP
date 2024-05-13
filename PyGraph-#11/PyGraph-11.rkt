@@ -200,8 +200,26 @@
 
       (expression ("{" identificador "=" expression 
                    (arbno ";" identificador "=" expression) "}") registro-exp)
+
+      (expression
+       (pred-prim "(" expression "," expression ")") predicate-exp)
+
+      (expression
+       (oper-bin-bool "(" expression "," expression ")") bool-bin-exp)
+
+      (expression
+       (oper-un-bool "(" expression ")") bool-un-exp)
       
       (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)
+      (oper-un-bool      ("not")      primitiva-and)
+      (oper-bin-bool     ("and")      primitiva-and)
+      (oper-bin-bool     ("or")       primitiva-or)
+      (pred-prim         ("<")        primitiva-menor)
+      (pred-prim         (">")        primitiva-mayor)
+      (pred-prim         ("<=")       primitiva-menor-igual)
+      (pred-prim         (">=")       primitiva-mayor-igual)
+      (pred-prim         ("==")       primitiva-igual)
+      (pred-prim         ("!=")       primitiva-diferente)
       (primitiva-unaria  ("add1")     primitiva-add1)
       (primitiva-unaria  ("sub1")     primitiva-sub1)
       (primitiva-unaria  ("zero?")    primitiva-zero)
