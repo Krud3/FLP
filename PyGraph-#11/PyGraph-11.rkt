@@ -211,7 +211,7 @@
        (oper-un-bool "(" expression ")") bool-un-exp)
       
       (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)
-      (oper-un-bool      ("not")      primitiva-and)
+      (oper-un-bool      ("not")      primitiva-not)
       (oper-bin-bool     ("and")      primitiva-and)
       (oper-bin-bool     ("or")       primitiva-or)
       (pred-prim         ("<")        primitiva-menor)
@@ -222,7 +222,6 @@
       (pred-prim         ("!=")       primitiva-diferente)
       (primitiva-unaria  ("add1")     primitiva-add1)
       (primitiva-unaria  ("sub1")     primitiva-sub1)
-      (primitiva-unaria  ("zero?")    primitiva-zero)
       (primitiva-unaria  ("longitud") primitiva-longitud)
       (primitiva-binaria ("+")        primitiva-suma)
       (primitiva-binaria ("~")        primitiva-resta)
@@ -331,6 +330,12 @@
   (lambda (exp env)
    (cases expression exp
      (numero-lit (num) num)
+     (bool-un-exp (prim args) (not (eval-expression args env)))
+     (predicate-exp (prim op1 op2)
+                    (apply-pred-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
+     (bool-bin-exp (prim op1 op2)
+                   (apply-bin-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
+     
      (bool-lit (bool) (true-value? bool))
      (texto-lit (text) (trim-quotes text ))
      (caracter-lit (caracter) (trim-quote caracter))
@@ -419,9 +424,25 @@
       (primitiva-add1 () (+ (car args) 1))
       (primitiva-sub1 () (- (car args) 1))
       (primitiva-longitud () (string-length (car args)))
-      (primitiva-zero () (valor-verdad? (car args)))
       )))
 
+(define apply-pred-boolean
+  (lambda (prim op1 op2)
+    (cases pred-prim prim
+      (primitiva-menor () (< op1 op2))
+      (primitiva-mayor () (> op1 op2))
+      (primitiva-menor-igual () (<= op1 op2))
+      (primitiva-mayor-igual () (>= op1 op2))
+      (primitiva-igual () (equal? op1 op2))
+      (primitiva-diferente () (not(equal? op1 op2)))
+      )))
+
+(define apply-bin-boolean
+  (lambda (prim op1 op2)
+    (cases oper-bin-bool prim
+      (primitiva-and () (and op1 op2))
+      (primitiva-or () (or op1 op2))
+      )))
 ;valor-verdad? Determina si un valor dado corresponde a un valor booleano falso o verdadero
 (define valor-verdad?
   (lambda (x)
