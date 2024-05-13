@@ -195,6 +195,11 @@
                 procrec-exp)
 
       (expression (bool) bool-lit)
+      (expression ("[" (separated-list expression ";") "]") lista-exp)
+      (expression ("vector" "[" (separated-list expression ";") "]") vector-exp)
+
+      (expression ("{" identificador "=" expression 
+                   (arbno ";" identificador "=" expression) "}") registro-exp)
       
       (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)
       (primitiva-unaria  ("add1")     primitiva-add1)
@@ -312,6 +317,9 @@
      (texto-lit (text) (trim-quotes text ))
      (caracter-lit (caracter) (trim-quote caracter))
      (var-exp (id) (apply-env env id))
+     (vector-exp (elements) elements)
+     (lista-exp (elements) elements)
+     (registro-exp (key value key2 value2) key value key2 key2)
      (primapp-bin-exp (lhs bin-op rhs) 
            (apply-binary-primitive bin-op (eval-expression lhs env) (eval-expression rhs env))
                       )
