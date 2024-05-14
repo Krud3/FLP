@@ -209,6 +209,10 @@
 
       (expression
        (oper-un-bool "(" expression ")") bool-un-exp)
+
+      (expression
+       ("begin" expression 
+                   (arbno ";" expression) "end") begin-exp)
       
       (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)
       (oper-un-bool      ("not")      primitiva-not)
@@ -335,7 +339,16 @@
                     (apply-pred-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
      (bool-bin-exp (prim op1 op2)
                    (apply-bin-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
-     
+
+     (begin-exp (exp exps) 
+                 (let loop ((acc (eval-expression exp env))
+                             (exps exps))
+                    (if (null? exps) 
+                        acc
+                        (loop (eval-expression (car exps) 
+                                               env)
+                              (cdr exps)))))
+    
      (bool-lit (bool) (true-value? bool))
      (texto-lit (text) (trim-quotes text ))
      (caracter-lit (caracter) (trim-quote caracter))
