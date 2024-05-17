@@ -169,10 +169,16 @@
 
 (define grammar-interpreter
   '((program (expression) un-programa)
-    (expression (number)  numero-lit)
+    (expression (number) numero-lit)
     (expression (texto) texto-lit)
     (expression (caracter) caracter-lit)
     (expression (identificador) var-exp)
+    (expression (primitiva-lista "(" (separated-list expression ",") ")")
+                prim-list-exp)
+
+    (expression (primitiva-vector "(" (separated-list expression ",") ")")
+                prim-vec-exp)
+    
     (expression
       ("(" expression primitiva-binaria expression ")")
       primapp-bin-exp
@@ -180,12 +186,11 @@
     (expression
       (primitiva-unaria "(" (separated-list expression ",") ")")
         primapp-un-exp)
-      (expression ("var" "(" (separated-list identificador "=" expression ";") ")"
+    (expression ("declarar" "(" (separated-list  expression ";") ")"
           "{" expression "}") 
-            variableLocal-exp)
-      (expression ("const" "(" (separated-list identificador "=" expression ";") ")"
-          "{" expression "}") 
-            constLocal-exp)
+            declarar-exp)
+      (expression ("var" (separated-list identificador "=" expression ",") ";") variableLocal-exp)
+      (expression ("const" (separated-list identificador "=" expression ",") ";") constLocal-exp)
       (expression ("procedimiento" "(" (separated-list identificador ",") ")" 
                                         "haga" expression "finProc")
                 procedimiento-exp)
@@ -196,7 +201,7 @@
 
       (expression (bool) bool-lit)
       (expression ("[" (separated-list expression ";") "]") lista-exp)
-      (expression ("vector" "[" (separated-list expression ";") "]") vector-exp)
+      (expression ("#" "[" (separated-list expression ";") "]") vector-exp)
 
       (expression ("{" identificador "=" expression 
                    (arbno ";" identificador "=" expression) "}") registro-exp)
@@ -213,8 +218,18 @@
       (expression
        ("begin" expression 
                    (arbno ";" expression) "end") begin-exp)
+
+      (expression
+       ("for" identificador "=" expression "to" expression "do" expression "done") for-exp)
+
+      (expression ("while" expression "do" expression "done") while-exp)
       
-      (expression ("Si" expression "entonces" expression "sino" expression "finSi") condicional-exp)
+      (expression ("print" "(" expression ")") print-exp)
+      (expression ("if" expression "then" expression "end") if-condicional-exp)
+      (expression ("ife" expression "then" expression "else" expression "end") elif-condicional-exp)
+
+      (expression ("set" identificador "=" expression) set-exp)
+      
       (oper-un-bool      ("not")      primitiva-not)
       (oper-bin-bool     ("and")      primitiva-and)
       (oper-bin-bool     ("or")       primitiva-or)
@@ -232,9 +247,24 @@
       (primitiva-binaria ("*")        primitiva-multi)
       (primitiva-binaria ("/")        primitiva-div)
       (primitiva-binaria ("concat")   primitiva-concat)
-
       
-  
+      (primitiva-lista   ("vacio?")   primitiva-list-is-vacio)
+      (primitiva-lista   ("vacio")    primitiva-list-vacio)
+      (primitiva-lista   ("crear-lista")   primitiva-list-crear)
+      (primitiva-lista   ("lista?")   primitiva-list-is-lista)
+      (primitiva-lista   ("cabeza")   primitiva-list-cabeza)
+      (primitiva-lista   ("cola")     primitiva-list-cola)
+      (primitiva-lista   ("append")   primitiva-list-append)
+
+      (primitiva-vector   ("vector?")      primitiva-vector-is-vector)
+      (primitiva-vector   ("crear-vector") primitiva-vector-crear)
+      (primitiva-vector   ("ref-vector")   primitiva-vector-ref)
+      (primitiva-vector   ("set-vector")   primitiva-vector-set)
+      
+      (primitiva-registro   ("registros?")     primitiva-registro-is-registro)
+      (primitiva-registro   ("crear-registro") primitiva-registro-crear)
+      (primitiva-registro   ("ref-registro")   primitiva-registro-ref)
+      (primitiva-registro   ("set-registro")   primitiva-registro-set) 
      )
     )
 
@@ -281,9 +311,10 @@
 ;Definición del tipo de dato ambiente
 (define-datatype environment environment?
   (empty-env-record)
-  (extended-env-record (ids (list-of symbol?))
-                       (vals (list-of scheme-value?))
-                       (env environment?)
+  (extended-env-record (ids            (list-of symbol?))
+                       (vals            vector?)
+                       (vars-mutablity (list-of boolean?))
+                       (env             environment?)
   )
   (recursively-extended-env-record (proc-names (list-of symbol?))
                                    (idss (list-of (list-of symbol?)))
@@ -300,8 +331,9 @@
 ;extend-env: <list-of symbols> <list-of numbers> <enviroment> -> enviroment
 ;función que crea un ambiente extendido
 (define extend-env
-  (lambda (ids vals env)
-    (extended-env-record ids vals env))) 
+  (lambda (ids vals vars env)
+    (extended-env-record ids (list->vector vals) vars env)))
+
 
 ;;Ambiente inicial v0
 (define init-env
@@ -309,6 +341,7 @@
     (extend-env
      '(@a @b @c @d @e)
      '(1 2 3 "hola" "FLP")
+     '(#t #f #t #t #t)
      (empty-env)
     )
   )
@@ -334,28 +367,98 @@
   (lambda (exp env)
    (cases expression exp
      (numero-lit (num) num)
+     (print-exp (ex) (begin (display (eval-expression ex env)) (newline)))
      (bool-un-exp (prim args) (not (eval-expression args env)))
+     (prim-list-exp (prim rands)
+                    (let ((args (eval-rands rands env)))
+                        (apply-list-primitive prim args)
+                      ))
+     (prim-vec-exp (prim rands)
+                    (let ((args (eval-rands rands env)))
+                        (apply-vector-primitive prim args)
+                      ))
+
      (predicate-exp (prim op1 op2)
                     (apply-pred-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
      (bool-bin-exp (prim op1 op2)
                    (apply-bin-boolean prim (eval-expression op1 env)(eval-expression op2 env)))
+     (declarar-exp (decls body)
+        (let ((extended-env (eval-declarations decls env)))
+          (eval-expression body extended-env)))
+     #|(declarar-exp (id rands body) ids
+                      (let ((args (eval-rands rands env)))
+                            (eval-expression body (extend-env ids args env))))|#
+     (variableLocal-exp (ids rands)
+                        (begin (display ids)
+                        (let ((args (eval-rands rands env)))
+                            (extend-env ids args (make-filled-list #t (list-length ids)) env))))
+   (begin-exp (exp exps)
+              (let ((local-env
+                     (begin
+                     (cases expression exp
+                       (variableLocal-exp (ids rands)                                           
+                                           (let ((args (eval-rands rands env)))
+                                            (extend-env ids args (make-filled-list #t (list-length ids)) env))
+                                          )
+                        (constLocal-exp (ids rands)
+                                         (let ((args (eval-rands rands env)))
+                                         (extend-env ids args (make-filled-list #f (list-length ids)) env))
+                                     )
+                       (else env)))))
+                (let loop ((acc (eval-expression exp local-env))
+                           (exps exps)
+                           (acc-env env)) ;; Initialize acc-env with local-env
+                  (if (null? exps)
+                      acc ;; Return the accumulated result and env
+                      (let ((result-env
+                             (cases expression (car exps)
+                               ( app-exp (tor rands) local-env)
+                               (variableLocal-exp (ids rands)
+                                                  (let ((args (eval-rands rands acc-env)))
+                                                    (extend-env ids args (make-filled-list #t (list-length ids)) acc-env)))
+                               (constLocal-exp (ids rands)
+                                               (let ((args (eval-rands rands env)))
+                                                 (extend-env ids args (make-filled-list #f (list-length ids)) acc-env)))
+                               (else acc-env))))
+                        (begin #|(display "Before Init")
+(display result-env)
+(display "Before end")|#
+                        (loop (cases expression (car exps)
+(app-exp (tor rands) (eval-expression  (car exps) result-env))
+                      (else
+                       (begin
+#|(display "Init")
+(display result-env)
+(display "end")|#
+(eval-expression  (car exps) result-env))))
+                               (cdr exps)
+                              result-env)))))))
 
-     (begin-exp (exp exps) 
-                 (let loop ((acc (eval-expression exp env))
-                             (exps exps))
-                    (if (null? exps) 
-                        acc
-                        (loop (eval-expression (car exps) 
-                                               env)
-                              (cdr exps)))))
-    
+      (for-exp (id init-value final-value body)
+               (let loop ((counter (eval-expression init-value env))
+                          (env env))
+                 (if (> counter (eval-expression final-value env))
+                     'done
+                     (let ((env (extend-env (list id) (list counter) (list #t) env)))
+                       (eval-expression body env)
+                       (loop (+ counter 1) env)))))
+
+    (while-exp (exp body)
+  (let loop ()
+    (if (eval-expression exp env) ; Check condition
+        (begin
+          (eval-expression body env)     ; Execute body
+          (loop))                        ; Recur if condition is true
+        'done)))  
+
+     
      (bool-lit (bool) (true-value? bool))
      (texto-lit (text) (trim-quotes text ))
      (caracter-lit (caracter) (trim-quote caracter))
      (var-exp (id) (apply-env env id))
-     (vector-exp (elements) elements)
-     (lista-exp (elements) elements)
-     (registro-exp (key value key2 value2) key value key2 key2)
+     (vector-exp (elements) (list->vector (eval-rands  elements env)))
+     (lista-exp (elements) (eval-rands elements env))
+     (registro-exp (key value key2 value2) (crear-registro key value key2 value2) )
      (primapp-bin-exp (lhs bin-op rhs) 
            (apply-binary-primitive bin-op (eval-expression lhs env) (eval-expression rhs env))
                       )
@@ -364,18 +467,39 @@
                         (apply-unary-primitive un-op args)
                       )
                      )
-     (condicional-exp (test-exp true-exp false-exp) 
+     (elif-condicional-exp (test-exp true-exp false-exp) 
                       (if (eval-expression test-exp env)
                           (eval-expression true-exp env)
                           (eval-expression false-exp env)
                       )
      )
-     (constLocal-exp (ids rands body) ids
+     (if-condicional-exp (test-exp true-exp) 
+                      (if (eval-expression test-exp env)
+                          (eval-expression true-exp env)
+                           #f
+                      )
+     )
+     
+     (set-exp (id rhs)
+              (begin
+                (let ((ref (apply-env-ref env id)))
+                (cases reference ref
+                  (a-ref (pos vec vars-mutability)
+                         (if (list-ref vars-mutability pos)
+                          (setref!
+                            ref
+                            (eval-expression rhs env))
+                          (eopl:error  "Error, no se puede modificar una variable definida como constante: ~s" id)
+                          )
+                         )
+                )
+              )
+                (newline)))
+     
+     
+     (constLocal-exp (ids rands) ids
                       (let ((args (eval-rands rands env)))
-                            (eval-expression body (extend-env ids args env))))
-     (variableLocal-exp (ids rands body) ids
-                      (let ((args (eval-rands rands env)))
-                            (eval-expression body (extend-env ids args env))))
+                            (extend-env ids args (make-filled-list #f (list-length ids)) env)))
       (procedimiento-exp (ids body) (cerradura ids body env))
 
       (app-exp (rator rands)
@@ -392,16 +516,29 @@
 
      )))
 
+
+(define (make-filled-list value n)
+  (define (helper count acc)
+    (if (= count 0)
+        acc
+        (helper (- count 1) (cons value acc))))
+  (helper n '()))
+
+(define (list-length lst)
+  (if (null? lst)
+      0
+      (+ 1 (list-length (cdr lst)))))
+
 ;Función que aplica un ambiente a una variable y retorna el valor asociado a la variable
 ;Se utiliza para evaluar las variables en el ambiente
 (define apply-env
   (lambda (env id)
     (cases environment env
       (empty-env-record () (eopl:error 'empty-env "Error, la variable no existe ~s" id))
-      (extended-env-record (syms vals old-env)
+      (extended-env-record (syms vals vars-mutability old-env)
                            (let ((pos (list-find-position id syms)))
                              (if (number? pos)
-                                 (list-ref vals pos)
+                                 (vector-ref vals pos)
                                  (apply-env old-env id)
                              )
                            )
@@ -414,12 +551,44 @@
                                                       env)
                                              (apply-env old-env id)))))))
 
+(define apply-env-ref
+  (lambda (env sym)
+    (cases environment env
+      (empty-env-record ()
+                        (eopl:error 'apply-env-ref "No binding for ~s" sym))
+      (extended-env-record (syms vals vars-mutability old-env)
+                           (let ((pos (list-find-position sym syms)))
+                             (if (number? pos)
+                                 (a-ref pos vals vars-mutability)
+                                 (apply-env-ref env sym))))
+      
+(recursively-extended-env-record (proc-names idss bodies old-env)
+                                       (let ((pos (list-find-position sym proc-names)))
+                                         (if (number? pos)
+                                             (cerradura (list-ref idss pos)
+                                                      (list-ref bodies pos)
+                                                      env)
+                                             (apply-env old-env sym))))
+      )))
+
+
+(define setref!
+  (lambda (ref val)
+    (primitive-setref! ref val)))
+
+(define primitive-setref!
+  (lambda (ref val)
+    (cases reference ref
+      (a-ref (pos vec vars-mutability)
+             (vector-set! vec pos val)))))
                       
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
 (define eval-rands
   (lambda (rands env)
     (map (lambda (x) (eval-rand x env)) rands)))
+
+
 
 
 ;Funcion auxiliar para evaluar un operando en un ambiente. Este es el llamado recursivo de eval-expression
@@ -456,6 +625,43 @@
       (primitiva-and () (and op1 op2))
       (primitiva-or () (or op1 op2))
       )))
+;----------------------------------------------------------------------------------
+
+
+(define apply-vector-primitive
+  (lambda (prim args)
+    (cases primitiva-vector prim
+      (primitiva-vector-is-vector () (vector? (car args)))
+      (primitiva-vector-crear () (apply vector args))
+      (primitiva-vector-ref () (vector-ref (car args) (cadr args)))
+      (primitiva-vector-set () (begin (vector-set! (car args) (cadr args) (caddr args)) (car args)))
+
+      )))
+
+
+(define apply-list-primitive
+  (lambda (prim args)
+    (cases primitiva-lista prim
+      (primitiva-list-is-vacio () (null? args))
+      (primitiva-list-vacio () '())
+      (primitiva-list-crear () 
+        (if (null? args)
+            '()
+            (cons (car args) (apply-list-primitive prim (cdr args)))))
+      (primitiva-list-is-lista () (list? (car args)))
+      (primitiva-list-cabeza () (car (car args)))
+      (primitiva-list-cola () (cdr (car args)))
+      (primitiva-list-append () (append args))
+      )))
+
+(define (apend lst)
+  (define (flatten lst)
+    (cond
+      [(null? lst) '()]
+      [(list? (car lst))
+       (append (flatten (car lst)) (flatten (cdr lst)))]
+      [else (cons (car lst) (flatten (cdr lst)))]))
+  (flatten lst))
 ;valor-verdad? Determina si un valor dado corresponde a un valor booleano falso o verdadero
 (define valor-verdad?
   (lambda (x)
@@ -477,11 +683,59 @@
 )
 
 
+
+
 (define true-value?
   (lambda (boolean-value)
      (eq? boolean-value 'true)
     )
 )
+
+(define-datatype reference reference?
+  (a-ref (position integer?)
+         (vec vector?)
+         (vars-mutability (list-of boolean?))
+         ))
+
+(define-datatype tuple tuple?
+  (pair (key symbol?)
+        (value scheme-value?)
+))
+
+(define first-tuple
+ (lambda (tp)
+  (cases tuple tp
+    (pair (first second) first)
+    )
+   )
+  )
+
+(define second-tuple
+ (lambda (tp)
+  (cases tuple tp
+    (pair (first second) second)
+    )
+   )
+  )
+
+
+(define-datatype register register?
+  (register-record
+        (records (list-of tuple?))
+))
+
+
+(define crear-registro
+  (lambda (key value key2 value2)
+    ( let ((head (pair key value)  ))
+     (register-record
+      (cons head               
+       (zip (lambda (k v)
+           (pair k v))
+         key2 value2 )
+    ))))
+  )
+
 
 ;***********************************************************************************************************************
 ;************************************************    Funciones Auxiliares    ̈*******************************************
@@ -519,6 +773,39 @@
               (if (number? list-index-r)
                 (+ list-index-r 1)
                 #f))))))
+(define zip 
+  (lambda (f l1 l2)
+    (cond
+      [(or (null? l1) (null? l2)) '()]
+      [(cons (f (car l1) (car l2)) (zip f (cdr l1) (cdr l2)))]
+      )
+  )
+)
+
+(define eval-declarations
+  (lambda (decls env)
+    (if (null? decls)
+        env
+        (let ((decl (car decls))
+              (extended-env (eval-declarations (cdr decls) env)))
+          (cases expression decl
+            (variableLocal-exp (ids rands)
+                               (let ((args (eval-rands rands extended-env)))
+                                 (extend-env ids args (make-filled-list #t (list-length ids)) extended-env)))
+            (constLocal-exp (ids rands)
+                            (let ((args (eval-rands rands extended-env)))
+                              (extend-env ids args (make-filled-list #f (list-length ids)) extended-env)))
+            
+            (procedimiento-exp (ids body)
+                               (let ((proc-name (car ids))
+                                     (proc-args (cdr ids))
+                                     (proc-body body))
+                                 (extend-env (list proc-name)
+                                             (list (cerradura proc-args proc-body extended-env))
+                                             (list #f)
+                                             extended-env)))
+            (else (eopl:error 'eval-declarations "Unknown declaration type ~s" decl)))))))
+
 
 ;***********************************************************************************************************************
 ;*********************************************     Procedimientos     **************************************************
@@ -535,7 +822,7 @@
   (lambda (proc args)
     (cases procVal proc
       (cerradura (ids body env)
-               (eval-expression body (extend-env ids args env))))))
+               (eval-expression body (extend-env ids args (make-filled-list #f (list-length ids)) env))))))
 
 ;extend-env-recursively: <list-of symbols> <list-of <list-of symbols>> <list-of expressions> environment -> environment
 ;función que crea un ambiente extendido para procedimientos recursivos

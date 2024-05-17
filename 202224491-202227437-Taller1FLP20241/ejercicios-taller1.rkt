@@ -339,6 +339,16 @@
   )
 )
 
+(define zip 
+  (lambda (f l1 l2)
+    (cond
+      [(or (null? l1) (null? l2)) '()]
+      [(cons (f (car l1) (car l2)) (zip f (cdr l1) (cdr l2)))]
+      [else (mapping f (cdr l1) (cdr l2))]
+      )
+  )
+)
+
 ;-----------------------------------
 ;--------EJEMPLOS DE PRUEBA---------
 ;-----------------------------------
