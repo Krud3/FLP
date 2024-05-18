@@ -1,7 +1,7 @@
 #lang eopl
 ;; JUAN SEBASTIAN MOLINA CUELLAR 202224491-3743
 ;; CRISTIAN DAVID PACHECO TORRES 202227437-3743
-;; TALLER 3 FLP 2024-1
+;; PROYECTO FLP 2024-1
 ;; url GitHub: https://github.com/Krud3/FLP
 
 ;******************************
@@ -11,7 +11,7 @@
 ;;
 ;;  <programa>          := <expresion>
 ;;                         un-program (exp)
-;;
+;;  <expresion>         := <expresion> . <method>
 ;;  <expresion>         := <numero>
 ;;                         numero-lit (num)
 ;;
@@ -165,6 +165,8 @@
    (#\'  (or letter digit " " "!" "?" ":" "." "," "-" "_" "/" "*" "&" "^" "%" "$" "#" "+" "=") #\') string)
   (bool
    ((or "true" "false")) symbol)
+  (call
+   ("@" letter (arbno (or letter digit "?"))  ".") string)
   ))
 
 ;Especificación Sintáctica (gramática)
@@ -213,7 +215,7 @@
        (pred-prim "(" expression "," expression ")") predicate-exp)
 
       (expression
-       (oper-bin-bool "(" expression "," expression ")") bool-bin-exp)
+       (oper-bin-bool  expression "," expression ) bool-bin-exp)
 
       (expression
        (oper-un-bool "(" expression ")") bool-un-exp)
@@ -236,9 +238,21 @@
       (expression ("edges" "(" (separated-list expression ",") ")") edges-dt-exp)
       (expression ("graph" "(" expression "," expression ")") graph-exp)
 
+      ;(expression (call "vertices") obtener-vertices-exp)
+      ;(expression (call "edges") obtener-edges-exp)
+
+      (expression (call  llamado) obtener-vertices-exp)
+      
+      #|(expression
+       (llamado) obtener-vertices-exp)|#
 
       (expression ("set" identificador "=" expression) set-exp)
+
       
+      (llamado ("vertices") primitiva-llamado)
+      (llamado ("edg") primitiva-edges)
+      ;(llamado (call "edg") primitiva-edg)
+       
       (oper-un-bool      ("not")      primitiva-not)
       (oper-bin-bool     ("and")      primitiva-and)
       (oper-bin-bool     ("or")       primitiva-or)
@@ -256,6 +270,8 @@
       (primitiva-binaria ("*")        primitiva-multi)
       (primitiva-binaria ("/")        primitiva-div)
       (primitiva-binaria ("concat")   primitiva-concat)
+
+      ;(graph-primitiva   (".")        )
       
       (primitiva-lista   ("vacio?")   primitiva-list-is-vacio)
       (primitiva-lista   ("vacio")    primitiva-list-vacio)
@@ -316,7 +332,8 @@
 (define scheme-value?
   (lambda (v) #t)
 )
-
+(define cadena
+  "hola")
 ;Definición del tipo de dato ambiente
 (define-datatype environment environment?
   (empty-env-record)
@@ -377,17 +394,56 @@
      (numero-lit (num) num)
      (print-exp (ex) (begin (display (eval-expression ex env)) (newline)))
      (bool-un-exp (prim args) (not (eval-expression args env)))
-     (vertice-dt-exp (ids)
-        (eval-vertice-dt ids env))
-     (pair-vertice-dt-exp (left right)
-        (pair-ver-dt left right))
      
-     (edges-dt-exp (pairs)
-        (eval-lista-edges pairs env))
-
+     (vertice-dt-exp (ids)
+        (ver-dt->list (eval-vertice-dt ids env)))
+     
+      (pair-vertice-dt-exp (left right)
+        (pair-vertice-dt->list (pair-ver-dt left right)))
+     
+      (edges-dt-exp (pairs)
+        (edges-dt->list (eval-lista-edges pairs env)))
+     
+     
      (graph-exp (vertices edges)
-        (graph-dt (eval-expression vertices env)
-                  (eval-expression edges env)))
+                (let ((graf (graph-dt ( ver-dt (eval-expression vertices env) ) 
+                  (edg-dt (map (lambda (pair) (pair-ver-dt (car pair) (car (cdr pair)))) (eval-expression edges env))))
+                            ))
+                  (cases grafo graf
+                    (graph-dt (vertices edges)
+               (list 
+               (cases vertice-dt vertices
+                 (ver-dt (ver) ver)
+                 (else '()))
+               (cases edges-dt edges
+                 (edg-dt (edges)
+                   (map (lambda (pair)
+                          (cases pair-vertice-dt pair
+                            (pair-ver-dt (left right) (list left right))))
+                        edges))
+                 (else '())))))))
+
+                     
+
+     #|(graph-exp (vertices edges)
+        (let ((v-list (eval-expression vertices env))
+              (e-list (eval-expression edges env)))
+          (graph-dt 
+            (ver-dt v-list)
+            (edg-dt (map (lambda (pair)
+                           (pair-ver-dt (car pair) (cadr pair)))
+                         e-list)))))|#
+     ;(let ((symbol-id (remove-last-char id))))
+     ;(car (apply-env env (string->symbol symbol-id)))
+     (obtener-vertices-exp (call llamado)
+         (let ((symbol-id (remove-last-char call)))
+           
+        (apply-llamado llamado (string->symbol symbol-id) env)))
+     ;(obtener-vertices-exp (call)
+     ;                      (let ((id (remove-last-char call)))
+     ;                        (car (apply-env env (string->symbol id))))
+                             ;(eval-expression (obtener-vertices (apply-env env (string->symbol id))) env))
+     ;  )
      
      (prim-list-exp (prim rands)
                     (let ((args (eval-rands rands env)))
@@ -592,6 +648,7 @@
       )))
 
 
+
 (define setref!
   (lambda (ref val)
     (primitive-setref! ref val)))
@@ -602,22 +659,6 @@
       (a-ref (pos vec vars-mutability)
              (vector-set! vec pos val)))))
 
-(define eval-vertice-dt
-  (lambda (ids env)
-    (let loop ((ids ids) (acc (empty-ver-dt)))
-      (if (null? ids)
-          acc
-          (loop (cdr ids) (ver-dt (car ids) acc))))))
-
-(define eval-lista-edges
-  (lambda (pairs env)
-    (let loop ((pairs pairs) (acc (empty-edge)))
-      (if (null? pairs)
-          acc
-          (let ((pair (eval-expression (car pairs) env)))
-            (if (pair-vertice-dt? pair)
-                (loop (cdr pairs) (edg-dt pair acc))
-                (eopl:error "Expected pair-vertice, found: " pair)))))))
 
 
 
@@ -665,6 +706,18 @@
       (primitiva-and () (and op1 op2))
       (primitiva-or () (or op1 op2))
       )))
+#|     (obtener-vertices-exp (call)
+                           (let ((id (remove-last-char call)))
+                             (car (apply-env env (string->symbol id))))
+       )|#
+(define apply-llamado
+  (lambda (llam id env)
+    (cases llamado llam
+      (primitiva-llamado ()        
+          (car (apply-env env id)))
+      (primitiva-edges  ()                      
+          (cdr (apply-env env id))))))
+;(let ((symbol-id (remove-last-char id))))
 ;----------------------------------------------------------------------------------
 
 
@@ -723,6 +776,15 @@
 )
 
 
+(define obtener-vertices
+  (lambda (graph)
+    (cases grafo graph
+      (graph-dt (vertices edges)
+        vertices))))
+
+(define remove-last-char
+  (lambda (s)
+    (substring s 0 (- (string-length s) 1))))
 
 
 (define true-value?
@@ -889,8 +951,8 @@
 
 (define-datatype vertice-dt vertice-dt?
   (empty-ver-dt)
-  (ver-dt (first symbol?)
-                    (rest vertice-dt?)))
+  (ver-dt (vertices (list-of symbol?))))
+
 
 ;;----------------------------<pair-vertices>-----------------------------
 
@@ -919,8 +981,7 @@
 
 (define-datatype edges-dt edges-dt?
   (empty-edge)
-  (edg-dt (v pair-vertice-dt?)
-          (edg edges-dt?)))
+  (edg-dt (edges (list-of pair-vertice-dt?))))
 
 ;;---------------------------------<graph>--------------------------------
 
@@ -934,5 +995,56 @@
 
 (define-datatype grafo grafo?
   (graph-dt (v vertice-dt?)
-            (edgg edges-dt?)))
+            (ed edges-dt?)))
+
+
+;-----------------------------------------------------------------------------------
+
+(define eval-vertice-dt
+  (lambda (ids env)
+    (let loop ((ids ids) (acc '()))
+      (if (null? ids)
+          (ver-dt (reverse acc))
+          (loop (cdr ids) (cons (car ids) acc))))))
+
+
+
+
+(define eval-lista-edges
+  (lambda (pairs env)
+    (let loop ((pairs pairs) (acc '()))
+      (if (null? pairs)
+          (edg-dt (reverse acc))
+          (let ((pair (eval-expression (car pairs) env)))
+            (if (and (list? pair) (= (length pair) 2))
+                (loop (cdr pairs) (cons (apply pair-ver-dt pair) acc))
+                (eopl:error "Expected pair-vertice, found: " pair)))))))
+
+
+
+
+(define ver-dt->list
+  (lambda (v)
+    (cases vertice-dt v
+      (empty-ver-dt () '())
+      (ver-dt (vertices) vertices))))
+
+(define pair-vertice-dt->list
+  (lambda (p)
+    (cases pair-vertice-dt p
+      (pair-ver-dt (left right) (list left right)))))
+
+(define edges-dt->list
+  (lambda (e)
+    (cases edges-dt e
+      (empty-edge () '())
+      (edg-dt (edges)
+        (map pair-vertice-dt->list edges)))))
+
+(define grafo->list
+  (lambda (g)
+    (cases grafo g
+      (graph-dt (vertices edges)
+        (list (ver-dt->list vertices) (edges-dt->list edges))))))
+
 
