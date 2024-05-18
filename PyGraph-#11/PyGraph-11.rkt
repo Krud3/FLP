@@ -149,6 +149,8 @@
    ("%" (arbno (not #\newline))) skip)
   (identificador
    ("@" letter (arbno (or letter digit "?"))) symbol)
+  (vertice
+   ( letter (arbno (or letter digit "?"))) symbol)
   (number
    (digit (arbno digit)) number)
   (number
@@ -173,6 +175,7 @@
     (expression (texto) texto-lit)
     (expression (caracter) caracter-lit)
     (expression (identificador) var-exp)
+    
     (expression (primitiva-lista "(" (separated-list expression ",") ")")
                 prim-list-exp)
 
@@ -227,6 +230,12 @@
       (expression ("print" "(" expression ")") print-exp)
       (expression ("if" expression "then" expression "end") if-condicional-exp)
       (expression ("ife" expression "then" expression "else" expression "end") elif-condicional-exp)
+
+      (expression ("v" "(" (separated-list vertice ",") ")") vertice-dt-exp)
+      (expression ("pv" "(" vertice "," vertice ")") pair-vertice-dt-exp)
+      (expression ("edges" "(" (separated-list expression ",") ")") edges-dt-exp)
+      (expression ("graph" "(" expression "," expression ")") graph-exp)
+
 
       (expression ("set" identificador "=" expression) set-exp)
       
@@ -360,7 +369,6 @@
 )
 
 
-
 ;eval-expression: <expression> <enviroment> -> numero
 ; evalua la expresión en el ambiente de entrada
 (define eval-expression
@@ -369,6 +377,18 @@
      (numero-lit (num) num)
      (print-exp (ex) (begin (display (eval-expression ex env)) (newline)))
      (bool-un-exp (prim args) (not (eval-expression args env)))
+     (vertice-dt-exp (ids)
+        (eval-vertice-dt ids env))
+     (pair-vertice-dt-exp (left right)
+        (pair-ver-dt left right))
+     
+     (edges-dt-exp (pairs)
+        (eval-lista-edges pairs env))
+
+     (graph-exp (vertices edges)
+        (graph-dt (eval-expression vertices env)
+                  (eval-expression edges env)))
+     
      (prim-list-exp (prim rands)
                     (let ((args (eval-rands rands env)))
                         (apply-list-primitive prim args)
@@ -581,6 +601,26 @@
     (cases reference ref
       (a-ref (pos vec vars-mutability)
              (vector-set! vec pos val)))))
+
+(define eval-vertice-dt
+  (lambda (ids env)
+    (let loop ((ids ids) (acc (empty-ver-dt)))
+      (if (null? ids)
+          acc
+          (loop (cdr ids) (ver-dt (car ids) acc))))))
+
+(define eval-lista-edges
+  (lambda (pairs env)
+    (let loop ((pairs pairs) (acc (empty-edge)))
+      (if (null? pairs)
+          acc
+          (let ((pair (eval-expression (car pairs) env)))
+            (if (pair-vertice-dt? pair)
+                (loop (cdr pairs) (edg-dt pair acc))
+                (eopl:error "Expected pair-vertice, found: " pair)))))))
+
+
+
                       
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -830,3 +870,69 @@
   (lambda (proc-names idss bodies old-env)
     (recursively-extended-env-record
      proc-names idss bodies old-env)))
+
+
+;***********************************************************************************************************************
+;*********************************************     graph        **************************************************
+;***********************************************************************************************************************
+
+;;------------------------------<vertices>--------------------------------
+
+;;-------------------------constructor
+
+;;<vertices-dt> ::= ()
+;;              ::= (<Symbol> <vertices-dt>)
+
+;; vertice-dt:
+;; Proposito:
+;; vertice-dt : Procedimiento encargado de definir el datatype de <vertices-dt>
+
+(define-datatype vertice-dt vertice-dt?
+  (empty-ver-dt)
+  (ver-dt (first symbol?)
+                    (rest vertice-dt?)))
+
+;;----------------------------<pair-vertices>-----------------------------
+
+;;-------------------------constructor
+
+;;<pair-vertice-dt> ::= (<vertices-dt> <vertices-dt>)           
+
+;; pair-vertice-dt:
+;; Proposito:
+;; pair-vertice-dt : Procedimiento encargado de definir el datatype de <pair-vertice-dt>
+
+(define-datatype pair-vertice-dt pair-vertice-dt?
+  (pair-ver-dt (left symbol?)
+               (right symbol?)))
+
+;;---------------------------------<edges>--------------------------------
+
+;;-------------------------constructor
+
+;;<edges-dt> ::= ()
+;;           ::= (<pair-vertices-dt> <edges-dt>)
+
+;; edges-dt:
+;; Proposito:
+;; edges-dt : Procedimiento encargado de definir el datatype de <edges>
+
+(define-datatype edges-dt edges-dt?
+  (empty-edge)
+  (edg-dt (v pair-vertice-dt?)
+          (edg edges-dt?)))
+
+;;---------------------------------<graph>--------------------------------
+
+;;-------------------------constructor
+
+;;<graph-dt> ::= (<vertices-dt> <edges-dt>)
+
+;; grafo:
+;; Proposito:
+;; grafo : Procedimiento encargado de definir el datatype de <graph-dt>
+
+(define-datatype grafo grafo?
+  (graph-dt (v vertice-dt?)
+            (edgg edges-dt?)))
+
