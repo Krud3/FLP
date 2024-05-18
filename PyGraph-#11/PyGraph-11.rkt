@@ -241,7 +241,7 @@
       ;(expression (call "vertices") obtener-vertices-exp)
       ;(expression (call "edges") obtener-edges-exp)
 
-      (expression (call  llamado) obtener-vertices-exp)
+      (expression (call  llamado) obtener-call-exp)
       
       #|(expression
        (llamado) obtener-vertices-exp)|#
@@ -251,6 +251,7 @@
       
       (llamado ("vertices") primitiva-llamado)
       (llamado ("edg") primitiva-edges)
+      (llamado ("vecinos" "(" vertice ")") primitiva-vecinos)
       ;(llamado (call "edg") primitiva-edg)
        
       (oper-un-bool      ("not")      primitiva-not)
@@ -435,10 +436,15 @@
                          e-list)))))|#
      ;(let ((symbol-id (remove-last-char id))))
      ;(car (apply-env env (string->symbol symbol-id)))
-     (obtener-vertices-exp (call llamado)
-         (let ((symbol-id (remove-last-char call)))
-           
-        (apply-llamado llamado (string->symbol symbol-id) env)))
+     #|(obtener-call-exp (call llamado)
+         (let ((symbol-id (remove-last-char call)))           
+        (apply-llamado llamado (string->symbol symbol-id) env)))|#
+     (obtener-call-exp (call llamado)
+        (let* ((symbol-id (remove-last-char call))
+               (res (apply-llamado llamado (string->symbol symbol-id) env)))
+          (if (procedure? res)
+              (res (eval-expression (cadr llamado) env)) 
+              res)))
      ;(obtener-vertices-exp (call)
      ;                      (let ((id (remove-last-char call)))
      ;                        (car (apply-env env (string->symbol id))))
@@ -710,13 +716,27 @@
                            (let ((id (remove-last-char call)))
                              (car (apply-env env (string->symbol id))))
        )|#
+
 (define apply-llamado
+  (lambda (llam id env)
+    (cases llamado llam
+      (primitiva-llamado ()        
+        (car (apply-env env id)))
+      (primitiva-edges ()                      
+        (cdr (apply-env env id)))
+      (primitiva-vecinos (nodo) 
+        (vecinos (lista-a-grafo (apply-env env id)) nodo)))))
+
+#|(define apply-llamado
   (lambda (llam id env)
     (cases llamado llam
       (primitiva-llamado ()        
           (car (apply-env env id)))
       (primitiva-edges  ()                      
-          (cdr (apply-env env id))))))
+          (cdr (apply-env env id)))
+      (primitiva-vecinos (nodo) 
+          (vecinos (apply-env env id) nodo))
+      )))|#
 ;(let ((symbol-id (remove-last-char id))))
 ;----------------------------------------------------------------------------------
 
@@ -1046,5 +1066,44 @@
     (cases grafo g
       (graph-dt (vertices edges)
         (list (ver-dt->list vertices) (edges-dt->list edges))))))
+
+;; vecinos:
+;; Proposito:
+;; vecinos : <graph-dt> <nodo> -> <list> : Funcion encargada de
+;; encargada de dado un grafo y un nodo retornar una lista de los nodos
+;; del grafo que tienen conexion directa con el nodo que entro por parametro
+
+(define vecinos
+  (lambda (graf nodo)
+    (letrec ((buscar-vecinos
+              (lambda (edg nodo)
+                (cases edges-dt edg
+                  (edg-dt (edges)
+                          (let loop ((edges edges) (acc '()))
+                            (if (null? edges)
+                                acc
+                                (let ((v (car edges))
+                                      (next-vecinos (loop (cdr edges) acc)))
+                                  (cases pair-vertice-dt v
+                                    (pair-ver-dt (left right)
+                                                 (cond
+                                                   ((eqv? nodo left) (cons right next-vecinos))
+                                                   ((eqv? nodo right) (cons left next-vecinos))
+                                                   (else next-vecinos))))))))
+                  (else '())))))
+      (cases grafo graf
+        (graph-dt (vertices edges)
+                  (buscar-vecinos edges nodo))))))
+
+(define lista-a-grafo
+  (lambda (lst)
+    (let ((vertices (car lst))
+          (edges (cadr lst)))
+      (graph-dt 
+        (ver-dt vertices) 
+        (edg-dt (map (lambda (pair) (apply pair-ver-dt pair)) edges))))))
+
+
+
 
 
