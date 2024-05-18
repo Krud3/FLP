@@ -248,7 +248,9 @@
 
       (expression ("set" identificador "=" expression) set-exp)
 
-      
+      (llamado ("rest()") primitiva-rest)
+
+      (llamado ("first()") primitiva-first)
       (llamado ("vertices") primitiva-llamado)
       (llamado ("edg") primitiva-edges)
       (llamado ("vecinos" "(" vertice ")") primitiva-vecinos)
@@ -721,17 +723,46 @@
   (lambda (llam id env)
     (cases llamado llam
       (primitiva-llamado ()        
-        (car (apply-env env id)))
+        (let ((value (lista-a-grafo (apply-env env id))))
+          (if (grafo? value)
+              (car (grafo->list value))
+              (eopl:error "El valor no es un grafo" id))))
       (primitiva-edges ()                      
-        (cdr (apply-env env id)))
+        (let ((value (lista-a-grafo (apply-env env id))))
+          (if (grafo? value)
+              (cdr (grafo->list value))
+              (eopl:error "El valor no es un grafo" id))))
       (primitiva-vecinos (nodo) 
-        (vecinos (lista-a-grafo (apply-env env id)) nodo)))))
+        (vecinos (lista-a-grafo (apply-env env id)) nodo))
+      (primitiva-first () 
+        (let ((value (apply-env env id)))
+          (cond
+            ((and (list? value) (not (null? value)) (symbol? (car value)))
+             (let ((vertices (lista-a-vertice value)))
+               (car (ver-dt->list vertices))))
+            ((and (list? value) (not (null? value)) (pair? (car value)))
+             (let ((edges (lista-a-edge value)))
+               (car (edges-dt->list edges))))
+            (else 
+             (eopl:error "El valor no es una lista de vértices o ejes" id)))))
+      (primitiva-rest () 
+        (let ((value (apply-env env id)))
+          (if (and (list? value) (not (null? value)) (pair? (car value)))
+              (let ((edges (lista-a-edge value)))
+                (cdr (edges-dt->list edges)))
+              (eopl:error "El valor no es una lista de ejes" id))))
+      )))
+
+
+
+
 
 #|(define apply-llamado
   (lambda (llam id env)
     (cases llamado llam
       (primitiva-llamado ()        
           (car (apply-env env id)))
+      
       (primitiva-edges  ()                      
           (cdr (apply-env env id)))
       (primitiva-vecinos (nodo) 
@@ -1095,6 +1126,29 @@
         (graph-dt (vertices edges)
                   (buscar-vecinos edges nodo))))))
 
+(define lista-a-vertice
+  (lambda (lst)
+    (if (null? lst)
+        (empty-ver-dt)
+        (ver-dt lst))))
+
+(define lista-a-pair-dt
+  (lambda (lst)
+    (if (or (null? lst) (not (= (length lst) 2)))
+        (eopl:error "La lista debe tener exactamente dos elementos")
+        (pair-ver-dt (car lst) (cadr lst)))))
+
+(define lista-a-edge
+  (lambda (lst)
+    (if (null? lst)
+        (empty-edge)
+        (edg-dt (map (lambda (pair)
+                       (if (and (list? pair) (= (length pair) 2))
+                           (apply pair-ver-dt pair)
+                           (eopl:error "Cada par en la lista debe tener exactamente dos elementos")))
+                     lst)))))
+
+
 (define lista-a-grafo
   (lambda (lst)
     (let ((vertices (car lst))
@@ -1104,6 +1158,22 @@
         (edg-dt (map (lambda (pair) (apply pair-ver-dt pair)) edges))))))
 
 
+(define first-element
+  (lambda (value)
+    (cond
+      ((vertice-dt? value)
+       (cases vertice-dt value
+         (empty-ver-dt () (eopl:error "La lista de vértices está vacía"))
+         (ver-dt (vertices) (if (null? vertices)
+                                (eopl:error "La lista de vértices está vacía")
+                                (car vertices)))))
+      ((edges-dt? value)
+       (cases edges-dt value
+         (empty-edge () (eopl:error "La lista de ejes está vacía"))
+         (edg-dt (edges) (if (null? edges)
+                             (eopl:error "La lista de ejes está vacía")
+                             (car edges)))))
+      (else (eopl:error "El valor no es una lista de vértices o ejes")))))
 
 
 
