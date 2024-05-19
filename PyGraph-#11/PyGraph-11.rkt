@@ -254,6 +254,7 @@
       (llamado ("vertices") primitiva-llamado)
       (llamado ("edg") primitiva-edges)
       (llamado ("vecinos" "(" vertice ")") primitiva-vecinos)
+      (llamado ("addEdge" "(" expression ")") primitiva-add-edge)
       ;(llamado (call "edg") primitiva-edg)
        
       (oper-un-bool      ("not")      primitiva-not)
@@ -751,6 +752,15 @@
               (let ((edges (lista-a-edge value)))
                 (cdr (edges-dt->list edges)))
               (eopl:error "El valor no es una lista de ejes" id))))
+
+      (primitiva-add-edge (pair-ver-exp)
+        (let* ((graph-value (apply-env env id))
+               (graph (lista-a-grafo graph-value))
+               (pair-ver (lista-a-pair-dt(eval-expression pair-ver-exp env))))
+          
+          (if (grafo? graph)
+              (grafo->list (add-edge graph pair-ver))
+              (eopl:error "El valor no es un grafo" id))))
       )))
 
 
@@ -1034,6 +1044,7 @@
   (empty-edge)
   (edg-dt (edges (list-of pair-vertice-dt?))))
 
+
 ;;---------------------------------<graph>--------------------------------
 
 ;;-------------------------constructor
@@ -1174,6 +1185,98 @@
                              (eopl:error "La lista de ejes está vacía")
                              (car edges)))))
       (else (eopl:error "El valor no es una lista de vértices o ejes")))))
+
+
+;; ver-dt-verificator:
+;; Proposito:
+;; ver-dt-verificator : (<vertices-dt> <symbol>)-> bool:
+;; Predicado encargado de validar si un value hace parte del conjunto
+;; del entorno de un vertice
+
+(define ver-dt-verificator
+  (lambda (ver val)
+    (cases vertice-dt ver
+      (ver-dt (vertices)
+              (if (member val vertices)
+                  #t
+                  #f))
+      (else #f))))
+
+;; pair-vertices-verificator:
+;; Proposito:
+;; pair-vertices-verificator : <pair-vertice-dt> <vertices-dt> -> bool :
+;; Predicado encargado de validar si dos valores no son iguales
+;; y si hacen parte del conjunto de vertices que llega por parametro.
+
+(define pair-vertices-verificator
+  (lambda (pair-ver ver)
+    (cases pair-vertice-dt pair-ver
+      (pair-ver-dt (left right)
+                   (if (and (not (eqv? left right))
+                            (and (ver-dt-verificator ver left)
+                                 (ver-dt-verificator ver right)))
+                       #t
+                       #f)))))
+
+;; edge-verificator:
+;; Proposito:
+;; edge-verificator : <edges-dt> <pair-vertice-dt> -> bool : Predicado encargado de
+;; validar si un <pair-vertice-dt> ya esta contenido en el entorno de <edges-dt>
+
+#|(define pair-in-edge?
+  (lambda (edg pair-ver)
+    (cases edges-dt edg
+      (edg-dt (edges)
+              (cases pair-vertice-dt pair-ver
+                (pair-ver-dt (left right)
+                             (if (or (member (list left right) (map pair-vertice-dt->list edges))
+                                     (member (list right left) (map pair-vertice-dt->list edges)))
+                                 #t
+                                 (pair-in-edge? (edg-dt (cdr edges)) pair-ver)))))
+      (else #f))))|#
+
+(define pair-in-edge?
+  (lambda (edg pair-ver)
+    (cases edges-dt edg
+      (empty-edge () #f)  ; Manejar el caso de empty-edge
+      (edg-dt (edges)
+              (if (null? edges)
+                  #f
+                  (cases pair-vertice-dt pair-ver
+                    (pair-ver-dt (left right)
+                                 (let ((current-edge (car edges)))
+                                   (cases pair-vertice-dt current-edge
+                                     (pair-ver-dt (v-left v-right)
+                                                  (if (or (and (eq? left v-left) (eq? right v-right))
+                                                          (and (eq? left v-right) (eq? right v-left)))
+                                                      #t
+                                                      (pair-in-edge? (edg-dt (cdr edges)) pair-ver))))))))))))
+
+
+
+;; add-edge:
+;; Proposito:
+;; add-edge : <graph-dt> L <pair-vertice-dt> -> <graph-dt> L' : Funcion encargada de
+;; adicionar el <pair-vertice-dt> a el grafo y retorna el grafo con su adicion
+;; si no lo puede adicionar, retorna la estructura sin modificarla.
+;; --------------------------------CUIDADO----------------------------------
+;; TENER EN CUENTA QUE add-edge NO MODIFICA EL GRAFO SI NO QUE RETORNA UNO
+;; NUEVO, si se quiere guardar el nuevo valor usar:
+;; (define grafonuevo (add-edge grafoanterior pair-vertice))
+
+(define add-edge
+  (lambda (gra pair-ver)
+    (cases grafo gra
+      (graph-dt (vert edges)
+
+        ;; Verificación y adición de la arista
+        (if (and (not (pair-in-edge? edges pair-ver))
+                 (pair-vertices-verificator pair-ver vert))
+            ;; Descomponer edges en sus elementos de lista y concatenar con pair-ver
+            (let ((edge-list (edges-dt->list edges)))
+              (graph-dt vert (edg-dt (cons pair-ver (map (lambda (p) (pair-ver-dt (car p) (car(cdr p))) ) edge-list)))))
+            gra)))))
+
 
 
 
