@@ -290,11 +290,31 @@
       (primitiva-vector   ("ref-vector")   primitiva-vector-ref)
       (primitiva-vector   ("set-vector")   primitiva-vector-set)
       
-      (primitiva-registro   ("registros?")     primitiva-registro-is-registro)
-      (primitiva-registro   ("crear-registro") primitiva-registro-crear)
-      (primitiva-registro   ("ref-registro")   primitiva-registro-ref)
-      (primitiva-registro   ("set-registro")   primitiva-registro-set) 
-     )
+
+       (expression
+          ("registro?" "(" identificador ")")
+           primitiva-registro-is-registro
+       )
+
+      (expression
+          ("crear-registro" "("  identificador "=" expression 
+                   (arbno ";" identificador "=" expression) ")")
+           primitiva-registro-crear
+      ) 
+
+      
+       (expression
+          ("ref-registro" "(" identificador "," identificador ")")
+           primitiva-registro-ref
+      )
+
+         (expression
+          ("set-registro" "("  identificador ","
+                   "{" (arbno  identificador "=" expression ";"  ) "}" ")")
+           primitiva-registro-set
+      ) 
+
+      )
     )
 
 
@@ -597,7 +617,12 @@
       (procrec-exp (proc-names idss bodies letrec-body)
             (eval-expression letrec-body
                             (extend-env-recursively proc-names idss bodies env)))
-      
+      (primitiva-registro-is-registro (id) (is-register (apply-env env id)))
+
+       (primitiva-registro-crear (id rand rsstIds restRands) (crear-registro id rand rsstIds restRands)) 
+       (primitiva-registro-ref (register-id field-id) (eval-expression (get-field (apply-env env register-id) field-id)env ))
+       (primitiva-registro-set (id key value) (eval-expression (set-exp id (apply registro-exp (set-register-field-list (apply-env env id) (car key) (car value)))) env))
+     
 
      )))
 
@@ -608,6 +633,30 @@
         acc
         (helper (- count 1) (cons value acc))))
   (helper n '()))
+
+(define get-field
+  (lambda (record field-id)
+    (cases register record
+      (register-record (records)
+        (let ((result (find-element (lambda (t)
+                                      (cases tuple t
+                                        (pair (k v) (eq? k field-id))))
+                                    records)))
+          (if result
+              (second-tuple result)
+              #f))))))
+(define find-element
+  (lambda (pred ls)
+    (cond
+      ((null? ls) #f)
+      ((pred (car ls)) (car ls))
+      (else (find-element pred (cdr ls))))))
+
+(define (is-register value)
+  (if (register? value)
+      #t
+      #f
+      ))
 
 (define (list-length lst)
   (if (null? lst)
@@ -668,7 +717,65 @@
       (a-ref (pos vec vars-mutability)
              (vector-set! vec pos val)))))
 
+(define set-register-field
+ (lambda (register key value)
+(let loop ((reg register) (new-reg '()))
+    (if (null? reg)
+        (cons (cons key value) new-reg) ; Añadir el nuevo campo al final
+        (let ((par (car reg)))
+          (if (eq? (car par) key)
+              ; Campo encontrado, actualizar el valor
+              (append new-reg (cons (cons key value) (cdr reg)))
+              ; Campo no encontrado, continuar con el siguiente
+              (loop (cdr reg) (cons par new-reg))))))
+   )
+  )
 
+(define set-register-field-a
+  (lambda (regis key value)
+    (cases register regis
+      (register-record (pairs)
+       (let loop ((remaining-pairs pairs) (new-pairs '()))
+         (if (null? remaining-pairs)
+             (register-record (reverse (cons (pair key value) new-pairs))) ; Añadir el nuevo campo al final
+             (let ((p (car remaining-pairs)))
+               (cases tuple p
+                 (pair (k v)
+                  (if (eq? k key)
+                      ; Campo encontrado, actualizar el valor
+                      (register-record (reverse (append new-pairs (cons (pair key value) (cdr remaining-pairs)))))
+                      ; Campo no encontrado, continuar con el siguiente
+                      (loop (cdr remaining-pairs) (cons p new-pairs))))))))))))
+
+
+
+(define set-register-field-list
+  (lambda (regis key value)
+    (cases register regis
+      (register-record (pairs)
+       (let loop ((remaining-pairs pairs) (new-pairs '()))
+         (if (null? remaining-pairs) 
+             (let ((updated-pairs (cons (pair key  value) new-pairs)))
+               (list key
+                     (numero-lit value)
+                     (map first-tuple (cdr  updated-pairs))
+                     (map second-tuple
+                          (cdr updated-pairs))))
+             (let ((p (car remaining-pairs)))
+               (cases tuple p
+                 (pair (k v)
+                  (if (eq? k key)
+                      ; Campo encontrado, actualizar el valor
+                      (let ((updated-pairs (append new-pairs (cons (pair key  value) (cdr remaining-pairs)))))
+                        (list key
+                              value
+                              (map first-tuple (cdr updated-pairs))
+                              (map (lambda (v) (cases tuple v
+                                                (pair (k v) v)))
+                                   (cdr updated-pairs))))
+                      ; Campo no encontrado, continuar con el siguiente
+                      (loop (cdr remaining-pairs) (cons (pair k  v)
+                                                   new-pairs))))))))))))
 
 
                       
